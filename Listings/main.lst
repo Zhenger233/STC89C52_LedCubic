@@ -1,0 +1,133 @@
+C51 COMPILER V9.60.0.0   MAIN                                                              10/07/2019 09:50:59 PAGE 1   
+
+
+C51 COMPILER V9.60.0.0, COMPILATION OF MODULE MAIN
+OBJECT MODULE PLACED IN .\Objects\main.obj
+COMPILER INVOKED BY: D:\Keil\C51\BIN\C51.EXE main.c OPTIMIZE(8,SPEED) BROWSE DEBUG OBJECTEXTEND PRINT(.\Listings\main.ls
+                    -t) OBJECT(.\Objects\main.obj)
+
+line level    source
+
+   1          #include <reg51.h>
+   2          #include <intrins.h>
+   3          #define NOP() _nop_()
+   4          
+   5          sbit MOSIO=P3^4;//pin14
+   6          sbit R_CLK=P3^5;//pin12
+   7          sbit S_CLK=P3^6;//pin11
+   8          sbit OE=P3^7;
+   9          
+  10          //void fakeDelay(unsigned int i);
+  11          void HC595SendData(unsigned char SendVal);
+  12          void pwm(char);
+  13          void tim0init();
+  14          void delay(unsigned int);
+  15          
+  16          unsigned int pp=0;
+  17          unsigned char Led=0xff;
+  18          char i;
+  19          
+  20          void main( )
+  21          {
+  22   1              tim0init();
+  23   1      
+  24   1      
+  25   1          while(1)
+  26   1          {
+  27   2                              HC595SendData(Led);
+  28   2              HC595SendData(Led);
+  29   2              
+  30   2          }
+  31   1      }
+  32          
+  33          void pwm(char a)
+  34          {
+  35   1              //char i,temp=0;
+  36   1      //      for(i=1;i<=a;i++)
+  37   1      //      {
+  38   1      //              HC595SendData(Led);
+  39   1      //              HC595SendData(Led);
+  40   1      //      }
+  41   1      //      for(i=a;i<=100;i++)
+  42   1      //      {OE=1;temp++;}
+  43   1      //      OE=0;
+  44   1              HC595SendData(Led);
+  45   1              HC595SendData(Led);
+  46   1              delay(a);
+  47   1              OE=1;
+  48   1              delay(100-a);
+  49   1              OE=0;
+  50   1      }
+  51          //void fakeDelay(unsigned int i)
+  52          //{ 
+  53          //      int temp=0;
+  54          //    unsigned int j;
+C51 COMPILER V9.60.0.0   MAIN                                                              10/07/2019 09:50:59 PAGE 2   
+
+  55          //    for(i;i>0;i--)
+  56          //        temp++;
+  57          //}
+  58          
+  59          void delay(unsigned int i)
+  60          {
+  61   1              unsigned int temp=pp;
+  62   1              while(1)
+  63   1              {
+  64   2                      if((pp==temp+i)%60000)break;
+  65   2              }
+  66   1      }
+  67          
+  68          void HC595SendData(unsigned char SendVal)
+  69          {
+  70   1          unsigned char i;
+  71   1          for(i=0;i<8;i++)
+  72   1          {
+  73   2              if((SendVal<<i)&0x80)MOSIO=1;
+  74   2              else MOSIO=0;
+  75   2                                      //MOSIO=1;  
+  76   2                              S_CLK=0;
+  77   2              NOP();
+  78   2              NOP();
+  79   2              S_CLK=1;
+  80   2                              delay(20);
+  81   2          }
+  82   1      
+  83   1          R_CLK=0;
+  84   1          NOP();
+  85   1          NOP();
+  86   1          R_CLK=1;
+  87   1      }
+  88          
+  89          
+  90          void tim0init()
+  91          {
+  92   1              TMOD=0x01;               //模式设置，00000001，可见采用的是定时器0，工作与模式1（M1=0，M0=1）。
+  93   1              TR0=1;                   //打开定时器
+  94   1              TH0=(65536-102)/256;             //定时器设置，每隔100微秒发起一次中断。
+  95   1              TL0=(65536-102)%256;
+  96   1              ET0=1;                   //开定时器0中断
+  97   1              EA=1;                    //开总中断
+  98   1      }
+  99          
+ 100          void time0() interrupt 1
+ 101          {       TH0=(65536-102)/256;//1ms
+ 102   1              TL0=(65536-102)%256;
+ 103   1              pp++;
+ 104   1              if(pp==60000)pp=0;
+ 105   1      }
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =    293    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =      4       7
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+C51 COMPILER V9.60.0.0   MAIN                                                              10/07/2019 09:50:59 PAGE 3   
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

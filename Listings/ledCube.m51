@@ -1,0 +1,208 @@
+BL51 BANKED LINKER/LOCATER V6.22.2.0                                                    10/07/2019  09:59:08  PAGE 1
+
+
+BL51 BANKED LINKER/LOCATER V6.22.2.0, INVOKED BY:
+D:\KEIL\C51\BIN\BL51.EXE .\Objects\main.obj TO .\Objects\ledCube PRINT (.\Listings\ledCube.m51) RAMSIZE (256)
+
+
+MEMORY MODEL: SMALL
+
+
+INPUT MODULES INCLUDED:
+  .\Objects\main.obj (MAIN)
+  D:\KEIL\C51\LIB\C51S.LIB (?C_STARTUP)
+  D:\KEIL\C51\LIB\C51S.LIB (?C?SLDIV)
+  D:\KEIL\C51\LIB\C51S.LIB (?C?SLCMP)
+  D:\KEIL\C51\LIB\C51S.LIB (?C_INIT)
+  D:\KEIL\C51\LIB\C51S.LIB (?C?ULDIV)
+
+
+LINK MAP OF MODULE:  .\Objects\ledCube (MAIN)
+
+
+            TYPE    BASE      LENGTH    RELOCATION   SEGMENT NAME
+            -----------------------------------------------------
+
+            * * * * * * *   D A T A   M E M O R Y   * * * * * * *
+            REG     0000H     0008H     ABSOLUTE     "REG BANK 0"
+            DATA    0008H     0006H     UNIT         _DATA_GROUP_
+            DATA    000EH     0004H     UNIT         ?DT?MAIN
+            DATA    0012H     0001H     UNIT         ?DT?_PWM?MAIN
+            IDATA   0013H     0001H     UNIT         ?STACK
+
+            * * * * * * *   C O D E   M E M O R Y   * * * * * * *
+            CODE    0000H     0003H     ABSOLUTE     
+                    0003H     0008H                  *** GAP ***
+            CODE    000BH     0003H     ABSOLUTE     
+                    000EH     07F2H                  *** GAP ***
+            CODE    0800H     00E4H     UNIT         ?C?LIB_CODE
+            CODE    08E4H     008CH     UNIT         ?C_C51STARTUP
+            CODE    0970H     005CH     UNIT         ?PR?TIME0?MAIN
+            CODE    09CCH     0044H     UNIT         ?C?LDIV
+            CODE    0A10H     003FH     UNIT         ?PR?_DELAY?MAIN
+            CODE    0A4FH     003EH     UNIT         ?PR?_HC595SENDDATA?MAIN
+            CODE    0A8DH     002DH     UNIT         ?PR?_PWM?MAIN
+            CODE    0ABAH     0010H     UNIT         ?PR?TIM0INIT?MAIN
+            CODE    0ACAH     000FH     UNIT         ?PR?MAIN?MAIN
+            CODE    0AD9H     0008H     UNIT         ?C_INITSEG
+
+
+
+OVERLAY MAP OF MODULE:   .\Objects\ledCube (MAIN)
+
+
+SEGMENT                           DATA_GROUP 
+  +--> CALLED SEGMENT           START    LENGTH
+-----------------------------------------------
+?C_C51STARTUP                   -----    -----
+  +--> ?PR?MAIN?MAIN
+  +--> ?C_INITSEG
+
+?PR?MAIN?MAIN                   -----    -----
+BL51 BANKED LINKER/LOCATER V6.22.2.0                                                  10/07/2019  09:59:08  PAGE 2
+
+
+  +--> ?PR?TIM0INIT?MAIN
+  +--> ?PR?_HC595SENDDATA?MAIN
+
+?PR?_HC595SENDDATA?MAIN         0008H    0002H
+  +--> ?PR?_DELAY?MAIN
+
+?PR?_DELAY?MAIN                 000AH    0004H
+
+
+
+SYMBOL TABLE OF MODULE:  .\Objects\ledCube (MAIN)
+
+  VALUE           TYPE          NAME
+  ----------------------------------
+
+  -------         MODULE        MAIN
+  C:0000H         SYMBOL        _ICE_DUMMY_
+  D:00B0H         PUBLIC        P3
+  B:00A8H.7       PUBLIC        EA
+  B:00B0H.4       PUBLIC        MOSIO
+  B:00B0H.5       PUBLIC        R_CLK
+  B:00B0H.6       PUBLIC        S_CLK
+  C:0A10H         PUBLIC        _delay
+  B:00B0H.7       PUBLIC        OE
+  D:000EH         PUBLIC        Led
+  C:0ACAH         PUBLIC        main
+  C:0ABAH         PUBLIC        tim0init
+  D:0089H         PUBLIC        TMOD
+  C:0A4FH         PUBLIC        _HC595SendData
+  B:00A8H.1       PUBLIC        ET0
+  D:008CH         PUBLIC        TH0
+  D:008AH         PUBLIC        TL0
+  C:0A8DH         PUBLIC        _pwm
+  B:0088H.4       PUBLIC        TR0
+  D:000FH         PUBLIC        pp
+  C:0970H         PUBLIC        time0
+  D:0011H         PUBLIC        i
+  -------         PROC          MAIN
+  C:0ACAH         LINE#         20
+  C:0ACAH         LINE#         21
+  C:0ACAH         LINE#         22
+  C:0ACDH         LINE#         25
+  C:0ACDH         LINE#         26
+  C:0ACDH         LINE#         27
+  C:0AD2H         LINE#         28
+  C:0AD7H         LINE#         30
+  -------         ENDPROC       MAIN
+  -------         PROC          _PWM
+  D:0012H         SYMBOL        a
+  C:0A8DH         LINE#         33
+  C:0A8FH         LINE#         34
+  C:0A8FH         LINE#         44
+  C:0A94H         LINE#         45
+  C:0A99H         LINE#         46
+  C:0AA3H         LINE#         47
+  C:0AA5H         LINE#         48
+  C:0AB7H         LINE#         49
+BL51 BANKED LINKER/LOCATER V6.22.2.0                                                  10/07/2019  09:59:08  PAGE 3
+
+
+  C:0AB9H         LINE#         50
+  -------         ENDPROC       _PWM
+  -------         PROC          _DELAY
+  D:000AH         SYMBOL        i
+  -------         DO            
+  D:000CH         SYMBOL        temp
+  -------         ENDDO         
+  C:0A10H         LINE#         59
+  C:0A14H         LINE#         60
+  C:0A14H         LINE#         61
+  C:0A1AH         LINE#         62
+  C:0A1AH         LINE#         63
+  C:0A1AH         LINE#         64
+  C:0A4EH         LINE#         65
+  C:0A4EH         LINE#         66
+  -------         ENDPROC       _DELAY
+  -------         PROC          _HC595SENDDATA
+  D:0008H         SYMBOL        SendVal
+  -------         DO            
+  D:0009H         SYMBOL        i
+  -------         ENDDO         
+  C:0A4FH         LINE#         68
+  C:0A51H         LINE#         69
+  C:0A51H         LINE#         71
+  C:0A5FH         LINE#         72
+  C:0A5FH         LINE#         73
+  C:0A73H         LINE#         74
+  C:0A75H         LINE#         76
+  C:0A77H         LINE#         77
+  C:0A78H         LINE#         78
+  C:0A79H         LINE#         79
+  C:0A7BH         LINE#         80
+  C:0A82H         LINE#         81
+  C:0A86H         LINE#         83
+  C:0A88H         LINE#         84
+  C:0A89H         LINE#         85
+  C:0A8AH         LINE#         86
+  C:0A8CH         LINE#         87
+  -------         ENDPROC       _HC595SENDDATA
+  -------         PROC          TIM0INIT
+  C:0ABAH         LINE#         90
+  C:0ABAH         LINE#         91
+  C:0ABAH         LINE#         92
+  C:0ABDH         LINE#         93
+  C:0ABFH         LINE#         94
+  C:0AC2H         LINE#         95
+  C:0AC5H         LINE#         96
+  C:0AC7H         LINE#         97
+  C:0AC9H         LINE#         98
+  -------         ENDPROC       TIM0INIT
+  -------         PROC          TIME0
+  C:0970H         LINE#         100
+  C:098DH         LINE#         101
+  C:0990H         LINE#         102
+  C:0993H         LINE#         103
+  C:099BH         LINE#         104
+  C:09B1H         LINE#         105
+BL51 BANKED LINKER/LOCATER V6.22.2.0                                                  10/07/2019  09:59:08  PAGE 4
+
+
+  -------         ENDPROC       TIME0
+  -------         ENDMOD        MAIN
+
+  -------         MODULE        ?C?SLDIV
+  C:09CCH         PUBLIC        ?C?SLDIV
+  -------         ENDMOD        ?C?SLDIV
+
+  -------         MODULE        ?C?SLCMP
+  C:0800H         PUBLIC        ?C?SLCMP
+  -------         ENDMOD        ?C?SLCMP
+
+  -------         MODULE        ?C?ULDIV
+  C:0852H         PUBLIC        ?C?ULDIV
+  -------         ENDMOD        ?C?ULDIV
+
+*** WARNING L16: UNCALLED SEGMENT, IGNORED FOR OVERLAY PROCESS
+    SEGMENT: ?PR?_PWM?MAIN
+
+******************************************************************************
+* RESTRICTED VERSION WITH 0800H BYTE CODE SIZE LIMIT; USED: 012FH BYTE (14%) *
+******************************************************************************
+
+Program Size: data=20.0 xdata=0 code=743
+LINK/LOCATE RUN COMPLETE.  1 WARNING(S),  0 ERROR(S)
