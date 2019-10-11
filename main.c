@@ -2,6 +2,9 @@
 #include <intrins.h>
 #define NOP() _nop_()
 
+sbit LED1=P3^0;
+sbit LED2=P3^1;
+/*
 sbit MOSIO=P3^4;//pin14
 sbit R_CLK=P3^5;//pin12
 sbit S_CLK=P3^6;//pin11
@@ -16,19 +19,21 @@ void delay(unsigned int);
 unsigned int pp=0;
 unsigned char Led=0xff;
 char i;
-
+*/
 void main( )
 {
-	tim0init();
+	//tim0init();
 
 
     while(1)
     {
-			HC595SendData(Led);
-	HC595SendData(Led);
-        
+		//HC595SendData(Led);
+		//HC595SendData(Led);
+        LED1=1;
+		LED2=1;
     }
 }
+/*
 
 void pwm(char a)
 {
@@ -103,3 +108,4 @@ void time0() interrupt 1
 	pp++;
 	if(pp==60000)pp=0;
 }
+*/
