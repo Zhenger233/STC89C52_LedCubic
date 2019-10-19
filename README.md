@@ -1,2 +1,1 @@
-# STC89C52_LedCubic
-Powered by Zhenger
+# STC89C52_LedCube

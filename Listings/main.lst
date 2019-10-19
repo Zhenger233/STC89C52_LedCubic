@@ -1,4 +1,4 @@
-C51 COMPILER V9.60.0.0   MAIN                                                              10/17/2019 21:10:09 PAGE 1   
+C51 COMPILER V9.60.0.0   MAIN                                                              10/19/2019 10:34:09 PAGE 1   
 
 
 C51 COMPILER V9.60.0.0, COMPILATION OF MODULE MAIN
@@ -62,7 +62,7 @@ line level    source
   52          ***74HC595
   53          * 1-OUT0-LEFTRED
   54          * 2-OUT1-RIGHTBLUE
-C51 COMPILER V9.60.0.0   MAIN                                                              10/17/2019 21:10:09 PAGE 2   
+C51 COMPILER V9.60.0.0   MAIN                                                              10/19/2019 10:34:09 PAGE 2   
 
   55          * 3-OUT2-RIGHTRED
   56          * 4-OUT3
@@ -126,7 +126,7 @@ line level    source
  114          uchar table2[]=" LEDCUBE ";
  115          unsigned int led=0xff;
  116          unsigned long tt=0;
-C51 COMPILER V9.60.0.0   MAIN                                                              10/17/2019 21:10:09 PAGE 3   
+C51 COMPILER V9.60.0.0   MAIN                                                              10/19/2019 10:34:09 PAGE 3   
 
  117          unsigned long keyNum=0;
  118          char keyNumString[20];
@@ -138,7 +138,7 @@ line level    source
  124          
  125          void HC595SendData(unsigned int SendVal);
  126          void tim0Init();
- 127          void fakeDelay(unsigned int i);
+ 127          //void fakeDelay(unsigned int i);
  128          void pwm(char);
  129          void keyInit();
  130          char* itoa(unsigned long num,char* str,int radix);
@@ -146,372 +146,419 @@ line level    source
  132          void write_date(unsigned char date);
  133          void write_com(uchar com);
  134          void ledInit();
- 135          void red();
- 136          void delayT(long);
- 137          void delay(uint);
- 138          void send32(ulong d);
- 139          void light(char l,ulong d1,ulong d2,ulong d3,ulong d4);
- 140          void redBreathe();
- 141          
- 142          void main( )
- 143          {
- 144   1              LED=1;
- 145   1              tim0Init();
- 146   1              keyInit();
- 147   1              //lcdInit();
- 148   1              ledInit();
- 149   1              LED=tempIO=0;
- 150   1              
- 151   1              
- 152   1          while(1)
- 153   1          {
- 154   2                      
- 155   2                      //light(0xf,0xffff,0xffff,0xffff,0xffff);
- 156   2                      //send32(0xffff);
- 157   2                      //MOSIO=1;
- 158   2                      redBreathe();
- 159   2          
- 160   2          }
- 161   1              
- 162   1      }
- 163          
- 164          void send32(ulong d)
- 165          {
- 166   1              unsigned char i;
- 167   1          for(i=0;i<32;i++)
- 168   1          {
- 169   2              if(d&(1<<i))MOSIO=1;
- 170   2              else MOSIO=0;
- 171   2                                      //MOSIO=1;  
- 172   2                              SCK=0;
- 173   2              NOP();NOP();
- 174   2              SCK=1;
- 175   2          }
- 176   1              RCK=0;
- 177   1              NOP();NOP();
- 178   1              RCK=1;
-C51 COMPILER V9.60.0.0   MAIN                                                              10/17/2019 21:10:09 PAGE 4   
+ 135          void delayT(long);
+ 136          void delay(uint);
+ 137          void send32(ulong d);
+ 138          void light(char l,ulong d1,ulong d2,ulong d3,ulong d4);
+ 139          void breathe(uint);
+ 140          void oneByOne();
+ 141          void layerSwitch(uchar l);
+ 142          
+ 143          void main( )
+ 144          {
+ 145   1              LED=1;
+ 146   1              //tim0Init();
+ 147   1              keyInit();
+ 148   1              //lcdInit();
+ 149   1              ledInit();
+ 150   1              LED=0;
+ 151   1          while(1)
+ 152   1          {
+ 153   2                      send32(0x55555555);
+ 154   2                      //delay(10);
+ 155   2                      
+ 156   2                      send32(0xaaaaaaaa);
+ 157   2                      //delay(10);
+ 158   2                      
+ 159   2          }
+ 160   1              
+ 161   1      }
+ 162          
+ 163          void send32(ulong d)
+ 164          {
+ 165   1              uint d1,d2,d3,d4;
+ 166   1              d1=d&0xff;d2=(d>>8)&0xff;d3=(d>>16)&0xff;d4=(d>>24)&0xff;
+ 167   1              HC595SendData(d1);
+ 168   1              HC595SendData(d2);
+ 169   1              HC595SendData(d3);
+ 170   1              HC595SendData(d4);
+ 171   1      }
+ 172          
+ 173          //void light(uchar l,ulong d1,ulong d2,ulong d3,ulong d4)
+ 174          //{
+ 175          //      send32(d1);
+ 176          //      layerSwitch(l);
+ 177          //      send32(d2);
+ 178          //      layerSwitch(l);
+C51 COMPILER V9.60.0.0   MAIN                                                              10/19/2019 10:34:09 PAGE 4   
 
- 179   1      }
- 180          
- 181          void light(char l,ulong d1,ulong d2,ulong d3,ulong d4)
- 182          {
- 183   1              send32(d1);
- 184   1              LEDGND1=(l?1:0);
- 185   1              send32(d2);
- 186   1              LEDGND2=((l>>1)?1:0);
- 187   1              send32(d3);
- 188   1              LEDGND3=((l>>2)?1:0);
- 189   1              send32(d4);
- 190   1              LEDGND4=((l>>3)?1:0);
- 191   1              
- 192   1      }
- 193          
- 194          void delay(uint t)
- 195          {
- 196   1              uint X,Y;
- 197   1              LED=1;
- 198   1              tempIO=1;
- 199   1              for(Y=0;Y<t;Y++)
- 200   1                      for(X=50;X>0;X--);
- 201   1              tempIO=0;
- 202   1              LED=0;
- 203   1                      for(Y=0;Y<t;Y++)
- 204   1                      for(X=50;X>0;X--);
- 205   1      }
- 206          
- 207          void fakeDelay(uint t)
- 208          {
- 209   1              uchar x;
- 210   1              for(t;t>=0;t--)
- 211   1                      for(x=110;x>=0;x--)g++;
- 212   1      }
- 213          
- 214          void red()
- 215          {
- 216   1              char x;
- 217   1              MOSIO=1;
- 218   1              for(x=0;x<32;x++)
- 219   1              {
- 220   2                      
- 221   2                      SCK=0;
- 222   2              NOP();
- 223   2              NOP();
- 224   2              SCK=1;
- 225   2                      delay(2);
- 226   2              }
- 227   1              RCK=0;
- 228   1              NOP();NOP();
- 229   1              RCK=1;
- 230   1      }
- 231          
- 232          void redBreathe()
- 233          {
- 234   1              red();
- 235   1                      
- 236   1              LEDBREATHE=20;
- 237   1              for(temp=0;temp<LEDBREATHE;temp++)
- 238   1              {
- 239   2                      OE1=OE2=OE3=OE4=1;
- 240   2                      delay(temp);
-C51 COMPILER V9.60.0.0   MAIN                                                              10/17/2019 21:10:09 PAGE 5   
+ 179          //      send32(d3);
+ 180          //      layerSwitch(l);
+ 181          //      send32(d4);
+ 182          //      layerSwitch(l);
+ 183          //}
+ 184          
+ 185          void delay(uint t)
+ 186          {
+ 187   1              uint X,Y;
+ 188   1              LED=1;
+ 189   1              tempIO=1;
+ 190   1              for(Y=0;Y<t;Y++)
+ 191   1                      for(X=50;X>0;X--);
+ 192   1              tempIO=0;
+ 193   1              LED=0;
+ 194   1                      for(Y=0;Y<t;Y++)
+ 195   1                      for(X=50;X>0;X--);
+ 196   1      }
+ 197          
+ 198          //void fakeDelay(uint t)
+ 199          //{
+ 200          //      uchar x;
+ 201          //      for(t;t>=0;t--)
+ 202          //              for(x=110;x>=0;x--)g++;
+ 203          //}
+ 204          
+ 205          void oneByOne()
+ 206          {
+ 207   1              uchar i;
+ 208   1              layerSwitch(1);
+ 209   1              for(i=0;i<32;i++)
+ 210   1              {
+ 211   2                      HC595SendData(1<<i);
+ 212   2                      delay(500);
+ 213   2              }
+ 214   1              layerSwitch(2);
+ 215   1              for(i=0;i<32;i++)
+ 216   1              {
+ 217   2                      HC595SendData(1<<i);
+ 218   2                      delay(500);
+ 219   2              }
+ 220   1              layerSwitch(4);
+ 221   1              for(i=0;i<32;i++)
+ 222   1              {
+ 223   2                      HC595SendData(1<<i);
+ 224   2                      delay(500);
+ 225   2              }
+ 226   1              layerSwitch(8);
+ 227   1              for(i=0;i<32;i++)
+ 228   1              {
+ 229   2                      HC595SendData(1<<i);
+ 230   2                      delay(500);
+ 231   2              }
+ 232   1      }
+ 233          
+ 234          void layerSwitch(uchar l)
+ 235          {
+ 236   1              LEDGND1=l&1;
+ 237   1              LEDGND2=l&2;
+ 238   1              LEDGND3=l&4;
+ 239   1              LEDGND4=l&8;
+ 240   1      }
+C51 COMPILER V9.60.0.0   MAIN                                                              10/19/2019 10:34:09 PAGE 5   
 
- 241   2                      OE1=OE2=OE3=OE4=0;
- 242   2                      delay(LEDBREATHE-temp);
- 243   2              }
- 244   1                      for(temp=LEDBREATHE;temp>0;temp--)
- 245   1              {
- 246   2                      OE1=OE2=OE3=OE4=1;
- 247   2                      delay(temp);
- 248   2                      OE1=OE2=OE3=OE4=0;
- 249   2                      delay(LEDBREATHE-temp);
- 250   2              }
- 251   1      }
- 252          
- 253          void ledInit()
- 254          {
- 255   1              //uint a=0;
- 256   1              OE1=OE2=OE3=OE4=0;      
- 257   1              LEDGND1=LEDGND2=LEDGND3=LEDGND4=0;
- 258   1              //for(a=1;a<=16;++a)HC595SendData(0xff);
- 259   1      }
- 260          
- 261          void HC595SendData(unsigned int SendVal)
- 262          {
- 263   1          unsigned char i;
- 264   1          for(i=0;i<8;i++)
- 265   1          {
- 266   2              if((SendVal<<i)&0x80)MOSIO=1;
- 267   2              else MOSIO=0;
- 268   2                                      //MOSIO=1;  
- 269   2                              SCK=0;
- 270   2              g++;
- 271   2              SCK=1;
- 272   2          }
- 273   1              RCK=0;
- 274   1              g++;
- 275   1              RCK=1;
- 276   1      }
- 277          
- 278          void keyInit()
- 279          {
- 280   1              EA=1;
- 281   1              EX0=1;
- 282   1              IT0=1;
- 283   1              EX1=1;
- 284   1              IT1=1;
- 285   1      }
- 286          
- 287          void tim0Init()
- 288          {
- 289   1              TMOD=0x00;               //Ä£Ê½ÉèÖÃ£¬00000001£¬¿É¼û²ÉÓÃµÄÊÇ¶¨Ê±Æ÷0£¬¹¤×÷ÓëÄ£Ê½1£¨M1=0£¬M0=1£©¡£
- 290   1              TH0=(8192-921)/32;               //¶¨Ê±Æ÷ÉèÖÃ£¬Ã¿¸ô1ms·¢ÆðÒ»´ÎÖÐ¶Ï¡£
- 291   1              TL0=(8192-921)%32;
- 292   1              TR0=1;                   //´ò¿ª¶¨Ê±Æ÷
- 293   1              ET0=1;                   //¿ª¶¨Ê±Æ÷0ÖÐ¶Ï
- 294   1              EA=1;                    //¿ª×ÜÖÐ¶Ï
- 295   1      }
- 296          
- 297          void key1Scan() interrupt 0
- 298          {
- 299   1              if(!modifyFlag)
- 300   1              {
- 301   2                      if(KEY1==0)
- 302   2                      {
-C51 COMPILER V9.60.0.0   MAIN                                                              10/17/2019 21:10:09 PAGE 6   
+ 241          
+ 242          void breathe(uint num)
+ 243          {
+ 244   1              HC595SendData(num);
+ 245   1              HC595SendData(num);
+ 246   1              HC595SendData(num);
+ 247   1              HC595SendData(num);
+ 248   1                      
+ 249   1              LEDBREATHE=20;
+ 250   1              for(temp=0;temp<LEDBREATHE;temp++)
+ 251   1              {
+ 252   2                      OE1=OE2=OE3=OE4=1;
+ 253   2                      delay(temp);
+ 254   2                      OE1=OE2=OE3=OE4=0;
+ 255   2                      delay(LEDBREATHE-temp);
+ 256   2              }
+ 257   1                      for(temp=LEDBREATHE;temp>0;temp--)
+ 258   1              {
+ 259   2                      OE1=OE2=OE3=OE4=1;
+ 260   2                      delay(temp);
+ 261   2                      OE1=OE2=OE3=OE4=0;
+ 262   2                      delay(LEDBREATHE-temp);
+ 263   2              }
+ 264   1      }
+ 265          
+ 266          void ledInit()
+ 267          {
+ 268   1              //uint a=0;
+ 269   1              OE1=OE2=OE3=OE4=0;      
+ 270   1              LEDGND1=LEDGND2=LEDGND3=LEDGND4=0;
+ 271   1              //for(a=1;a<=16;++a)HC595SendData(0xff);
+ 272   1      }
+ 273          
+ 274          void HC595SendData(unsigned int SendVal)
+ 275          {
+ 276   1              
+ 277   1          unsigned char i;
+ 278   1              LED=1;
+ 279   1          for(i=0;i<8;i++)
+ 280   1          {
+ 281   2              if((SendVal<<i)&0x80)MOSIO=1;
+ 282   2              else MOSIO=0;
+ 283   2                                      //MOSIO=1;  
+ 284   2                              SCK=0;
+ 285   2              NOP();NOP();
+ 286   2              SCK=1;
+ 287   2          }
+ 288   1              RCK=0;
+ 289   1              NOP();NOP();
+ 290   1              RCK=1;
+ 291   1              LED=0;
+ 292   1      }
+ 293          
+ 294          void keyInit()
+ 295          {
+ 296   1              EA=1;
+ 297   1              EX0=1;
+ 298   1              IT0=1;
+ 299   1              EX1=1;
+ 300   1              IT1=1;
+ 301   1      }
+ 302          
+C51 COMPILER V9.60.0.0   MAIN                                                              10/19/2019 10:34:09 PAGE 6   
 
- 303   3                              delay(5);
- 304   3                              if(KEY1==0)
- 305   3                              {
- 306   4                                      HC595SendData(0xff);
- 307   4                                      keyNum++;
- 308   4                              }
- 309   3                              while(!KEY1||!KEY2);
- 310   3                      }
- 311   2              }
- 312   1              
- 313   1      }
- 314          
- 315          void key2Scan() interrupt 2
- 316          {
- 317   1              //modifyFlag=1;
- 318   1              if(KEY2==0)
- 319   1                      {
- 320   2                              delay(5);
- 321   2                              if(KEY2==0)
- 322   2                              {
- 323   3                                      HC595SendData(0xff);
- 324   3                                      keyNum++;
- 325   3                              }
- 326   2                              while(!KEY1||!KEY2);
- 327   2                      }
- 328   1      }
- 329          
- 330          void time0() interrupt 1
- 331          {       TH0=(8192-921)/32;               //¶¨Ê±Æ÷ÉèÖÃ£¬Ã¿¸ô5ms·¢ÆðÒ»´ÎÖÐ¶Ï¡£
- 332   1              TL0=(8192-921)%32;
- 333   1              tt++;
- 334   1      }
- 335          
- 336          
- 337          
- 338          //void fakeDelay(unsigned int t)
- 339          //{ 
- 340          //      unsigned int i,j;
- 341          //      for(i=t;i>0;i--)
- 342          //              for(j=110;j>0;j--)NOP();
- 343          //}
- 344          /*
- 345          
- 346          void pwm(char a)
- 347          {
- 348                  //char i,temp=0;
- 349          //      for(i=1;i<=a;i++)
- 350          //      {
- 351          //              HC595SendData(Led);
- 352          //              HC595SendData(Led);
- 353          //      }
- 354          //      for(i=a;i<=100;i++)
- 355          //      {OE=1;temp++;}
- 356          //      OE=0;
- 357                  HC595SendData(Led);
- 358                  HC595SendData(Led);
- 359                  delay(a);
- 360                  OE=1;
- 361                  delay(100-a);
- 362                  OE=0;
- 363          }
- 364          */
-C51 COMPILER V9.60.0.0   MAIN                                                              10/17/2019 21:10:09 PAGE 7   
+ 303          
+ 304          
+ 305          void key1Scan() interrupt 0
+ 306          {
+ 307   1              char i;
+ 308   1                      if(KEY1==0)
+ 309   1                      {
+ 310   2                              delay(5);
+ 311   2                              if(KEY1==0)
+ 312   2                              {
+ 313   3                                      //HC595SendData(0xff);
+ 314   3                                      if(keyNum&1)
+ 315   3                                      {
+ 316   4                                              keyNum++;
+ 317   4                                              for(i=1;i<5;i++)
+ 318   4                                              {
+ 319   5                                                      breathe(0xaa);
+ 320   5                                                      delay(500);
+ 321   5                                              }
+ 322   4                                                      
+ 323   4                                      }
+ 324   3                                      else
+ 325   3                                      {
+ 326   4                                              keyNum++;
+ 327   4                                              for(i=1;i<5;i++)
+ 328   4                                              {
+ 329   5                                                      delay(500);
+ 330   5                                                      breathe(0x55);
+ 331   5                                              }
+ 332   4                                              
+ 333   4                                      }                                       
+ 334   3                              }
+ 335   2                              while(!KEY1||!KEY2);
+ 336   2                      }
+ 337   1              
+ 338   1      
+ 339   1      }
+ 340          
+ 341          void key2Scan() interrupt 2
+ 342          {
+ 343   1              //modifyFlag=1;
+ 344   1              if(KEY2==0)
+ 345   1                      {
+ 346   2                              delay(5);
+ 347   2                              if(KEY2==0)
+ 348   2                              {
+ 349   3                                      unsigned char i;
+ 350   3                                      for(i=0;i<8;i++)
+ 351   3                                      {
+ 352   4                                              MOSIO=0;  
+ 353   4                                              SCK=0;
+ 354   4                                              NOP();NOP();
+ 355   4                                              SCK=1;
+ 356   4                                      }
+ 357   3                                      RCK=0;
+ 358   3                                      NOP();NOP();
+ 359   3                                      RCK=1;
+ 360   3                                      keyNum++;
+ 361   3                                      keyNum++;
+ 362   3                              }
+ 363   2                              while(!KEY1||!KEY2);
+ 364   2                      }
+C51 COMPILER V9.60.0.0   MAIN                                                              10/19/2019 10:34:09 PAGE 7   
 
- 365          
+ 365   1      }
  366          
- 367          
- 368          //void delay(uint x)
- 369          //{
- 370          //      uint a,b;
- 371          //      for(a=x;a>0;a--)
- 372          //              for(b=10;b>0;b--); 
- 373          //}
- 374          
- 375          void write_com(uchar com)
- 376          {
- 377   1              P0=com;
- 378   1              rs=0;
- 379   1              lcden=0;
- 380   1              delay(10);
- 381   1              lcden=1;
- 382   1              delay(10);
- 383   1              lcden=0;
- 384   1              
- 385   1      }
- 386          
- 387          void write_date(uchar date)
- 388          {
- 389   1              P0=date;
- 390   1              rs=1;
- 391   1              lcden=0;
- 392   1              delay(10);
- 393   1              lcden=1;
- 394   1              delay(10);
- 395   1              lcden=0;
- 396   1              
- 397   1      }
- 398          
- 399          void lcdInit()
- 400          {
- 401   1          rw=0;
- 402   1              write_com(0x38);   //ÏÔÊ¾Ä£Ê½ÉèÖÃ£º16¡Á2ÏÔÊ¾£¬5¡Á7µãÕó£¬8Î»Êý¾Ý½Ó¿Ú
- 403   1              delay(20);
- 404   1              write_com(0x0f);   //ÏÔÊ¾Ä£Ê½ÉèÖÃ
- 405   1              delay(20);
- 406   1              write_com(0x06);   //ÏÔÊ¾Ä£Ê½ÉèÖÃ£º¹â±êÓÒÒÆ£¬×Ö·û²»ÒÆ
- 407   1              delay(20);
- 408   1              write_com(0x01);   //ÇåÆÁÄ»Ö¸Áî£¬½«ÒÔÇ°µÄÏÔÊ¾ÄÚÈÝÇå³ý
- 409   1              delay(20);      
- 410   1              
- 411   1                      write_com(0x80);         //½«µÚÒ»¸ö×Ö·ûÐ´ÔÚÏòÓÒÆ«ÒÆ17¸ö×Ö·û´¦£¬ÎªºóÃæµÄÓÉÓÒÏò×ó»®Èë×ö×¼±¸¡£
- 412   1              delay(20);
- 413   1      
- 414   1              for(a=0;a<14;a++)
- 415   1              {
- 416   2                      write_date(table1[a]);
- 417   2                      delay(20);              
- 418   2              }
- 419   1              
- 420   1              write_com(0xc0);
- 421   1              delay(50);
- 422   1              for(a=0;a<14;a++)
- 423   1              {
- 424   2                      write_date(table2[a]);
- 425   2                      delay(40);              
- 426   2              }
-C51 COMPILER V9.60.0.0   MAIN                                                              10/17/2019 21:10:09 PAGE 8   
+ 367          //void tim0Init()
+ 368          //{
+ 369          //      TMOD=0x00;               //Ä£Ê½ÉèÖÃ£¬00000001£¬¿É¼û²ÉÓÃµÄÊÇ¶¨Ê±Æ÷0£¬¹¤×÷ÓëÄ£Ê½1£¨M1=0£¬M0=1£©¡£
+ 370          //      TH0=(8192-921)/32;               //¶¨Ê±Æ÷ÉèÖÃ£¬Ã¿¸ô1ms·¢ÆðÒ»´ÎÖÐ¶Ï¡£
+ 371          //      TL0=(8192-921)%32;
+ 372          //      TR0=1;                   //´ò¿ª¶¨Ê±Æ÷
+ 373          //      ET0=1;                   //¿ª¶¨Ê±Æ÷0ÖÐ¶Ï
+ 374          //      EA=1;                    //¿ª×ÜÖÐ¶Ï
+ 375          //}
+ 376          
+ 377          //void time0() interrupt 1
+ 378          //{     TH0=(8192-921)/32;               //¶¨Ê±Æ÷ÉèÖÃ£¬Ã¿¸ô5ms·¢ÆðÒ»´ÎÖÐ¶Ï¡£
+ 379          //      TL0=(8192-921)%32;
+ 380          //      tt++;
+ 381          //}
+ 382          
+ 383          
+ 384          
+ 385          //void fakeDelay(unsigned int t)
+ 386          //{ 
+ 387          //      unsigned int i,j;
+ 388          //      for(i=t;i>0;i--)
+ 389          //              for(j=110;j>0;j--)NOP();
+ 390          //}
+ 391          /*
+ 392          
+ 393          void pwm(char a)
+ 394          {
+ 395                  //char i,temp=0;
+ 396          //      for(i=1;i<=a;i++)
+ 397          //      {
+ 398          //              HC595SendData(Led);
+ 399          //              HC595SendData(Led);
+ 400          //      }
+ 401          //      for(i=a;i<=100;i++)
+ 402          //      {OE=1;temp++;}
+ 403          //      OE=0;
+ 404                  HC595SendData(Led);
+ 405                  HC595SendData(Led);
+ 406                  delay(a);
+ 407                  OE=1;
+ 408                  delay(100-a);
+ 409                  OE=0;
+ 410          }
+ 411          */
+ 412          
+ 413          
+ 414          
+ 415          //void delay(uint x)
+ 416          //{
+ 417          //      uint a,b;
+ 418          //      for(a=x;a>0;a--)
+ 419          //              for(b=10;b>0;b--); 
+ 420          //}
+ 421          
+ 422          //void write_com(uchar com)
+ 423          //{
+ 424          //      P0=com;
+ 425          //      rs=0;
+ 426          //      lcden=0;
+C51 COMPILER V9.60.0.0   MAIN                                                              10/19/2019 10:34:09 PAGE 8   
 
- 427   1      }
- 428          
- 429          void delayT(long t)
- 430          {
- 431   1              unsigned long temp=tt;
- 432   1              while(1)
- 433   1              {
- 434   2                      if(tt>=(temp+t))break;
- 435   2              }
- 436   1              tt=0;
- 437   1      }
- 438          
- 439          
- 440          char* itoa(unsigned long num,char* str,int radix)
- 441          {
- 442   1              char temp;//ÁÙÊ±±äÁ¿£¬½»»»Á½¸öÖµÊ±ÓÃµ½
- 443   1              char index[]="0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";//Ë÷Òý±í
- 444   1              unsigned unum;//´æ·ÅÒª×ª»»µÄÕûÊýµÄ¾ø¶ÔÖµ,×ª»»µÄÕûÊý¿ÉÄÜÊÇ¸ºÊý
- 445   1              int i=0,j,k;//iÓÃÀ´Ö¸Ê¾ÉèÖÃ×Ö·û´®ÏàÓ¦Î»£¬×ª»»Ö®ºóiÆäÊµ¾ÍÊÇ×Ö·û´®µÄ³¤¶È£»×ª»»ºóË³ÐòÊÇÄæÐòµÄ£¬ÓÐÕý¸ºµÄÇé¿ö£
-             -¬kÓÃÀ´Ö¸Ê¾µ÷ÕûË³ÐòµÄ¿ªÊ¼Î»ÖÃ;jÓÃÀ´Ö¸Ê¾µ÷ÕûË³ÐòÊ±µÄ½»»»¡£
- 446   1       
- 447   1              //»ñÈ¡Òª×ª»»µÄÕûÊýµÄ¾ø¶ÔÖµ
- 448   1              if(radix==10&&num<0)//Òª×ª»»³ÉÊ®½øÖÆÊý²¢ÇÒÊÇ¸ºÊý
- 449   1              {
- 450   2                      unum=(unsigned)-num;//½«numµÄ¾ø¶ÔÖµ¸³¸øunum
- 451   2                      str[i++]='-';//ÔÚ×Ö·û´®×îÇ°ÃæÉèÖÃÎª'-'ºÅ£¬²¢ÇÒË÷Òý¼Ó1
- 452   2              }
- 453   1              else unum=(unsigned)num;//ÈôÊÇnumÎªÕý£¬Ö±½Ó¸³Öµ¸øunum
- 454   1       
- 455   1              //×ª»»²¿·Ö£¬×¢Òâ×ª»»ºóÊÇÄæÐòµÄ
- 456   1              do
- 457   1              {
- 458   2                      str[i++]=index[unum%(unsigned)radix];//È¡unumµÄ×îºóÒ»Î»£¬²¢ÉèÖÃÎªstr¶ÔÓ¦Î»£¬Ö¸Ê¾Ë÷Òý¼Ó1
- 459   2                      unum/=radix;//unumÈ¥µô×îºóÒ»Î»
- 460   2       
- 461   2              }while(unum);//Ö±ÖÁunumÎª0ÍË³öÑ­»·
- 462   1       
- 463   1              str[i]='\0';//ÔÚ×Ö·û´®×îºóÌí¼Ó'\0'×Ö·û£¬cÓïÑÔ×Ö·û´®ÒÔ'\0'½áÊø¡£
- 464   1       
- 465   1              //½«Ë³Ðòµ÷Õû¹ýÀ´
- 466   1              if(str[0]=='-') k=1;//Èç¹ûÊÇ¸ºÊý£¬·ûºÅ²»ÓÃµ÷Õû£¬´Ó·ûºÅºóÃæ¿ªÊ¼µ÷Õû
- 467   1              else k=0;//²»ÊÇ¸ºÊý£¬È«²¿¶¼Òªµ÷Õû
- 468   1       
- 469   1              
- 470   1              for(j=k;j<=(i-1)/2;j++)//Í·Î²Ò»Ò»¶Ô³Æ½»»»£¬iÆäÊµ¾ÍÊÇ×Ö·û´®µÄ³¤¶È£¬Ë÷Òý×î´óÖµ±È³¤¶ÈÉÙ1
- 471   1              {
- 472   2                      temp=str[j];//Í·²¿¸³Öµ¸øÁÙÊ±±äÁ¿
- 473   2                      str[j]=str[i-1+k-j];//Î²²¿¸³Öµ¸øÍ·²¿
- 474   2                      str[i-1+k-j]=temp;//½«ÁÙÊ±±äÁ¿µÄÖµ(ÆäÊµ¾ÍÊÇÖ®Ç°µÄÍ·²¿Öµ)¸³¸øÎ²²¿
- 475   2              }
- 476   1       
- 477   1              return str;//·µ»Ø×ª»»ºóµÄ×Ö·û´®
- 478   1      }
+ 427          //      delay(10);
+ 428          //      lcden=1;
+ 429          //      delay(10);
+ 430          //      lcden=0;
+ 431          //      
+ 432          //}
+ 433          
+ 434          //void write_date(uchar date)
+ 435          //{
+ 436          //      P0=date;
+ 437          //      rs=1;
+ 438          //      lcden=0;
+ 439          //      delay(10);
+ 440          //      lcden=1;
+ 441          //      delay(10);
+ 442          //      lcden=0;
+ 443          //      
+ 444          //}
+ 445          
+ 446          //void lcdInit()
+ 447          //{
+ 448          //    rw=0;
+ 449          //      write_com(0x38);   //ÏÔÊ¾Ä£Ê½ÉèÖÃ£º16¡Á2ÏÔÊ¾£¬5¡Á7µãÕó£¬8Î»Êý¾Ý½Ó¿Ú
+ 450          //      delay(20);
+ 451          //      write_com(0x0f);   //ÏÔÊ¾Ä£Ê½ÉèÖÃ
+ 452          //      delay(20);
+ 453          //      write_com(0x06);   //ÏÔÊ¾Ä£Ê½ÉèÖÃ£º¹â±êÓÒÒÆ£¬×Ö·û²»ÒÆ
+ 454          //      delay(20);
+ 455          //      write_com(0x01);   //ÇåÆÁÄ»Ö¸Áî£¬½«ÒÔÇ°µÄÏÔÊ¾ÄÚÈÝÇå³ý
+ 456          //      delay(20);      
+ 457          //      
+ 458          //              write_com(0x80);         //½«µÚÒ»¸ö×Ö·ûÐ´ÔÚÏòÓÒÆ«ÒÆ17¸ö×Ö·û´¦£¬ÎªºóÃæµÄÓÉÓÒÏò×ó»®Èë×ö×¼±¸¡£
+ 459          //      delay(20);
+ 460          
+ 461          //      for(a=0;a<14;a++)
+ 462          //      {
+ 463          //              write_date(table1[a]);
+ 464          //              delay(20);              
+ 465          //      }
+ 466          //      
+ 467          //      write_com(0xc0);
+ 468          //      delay(50);
+ 469          //      for(a=0;a<14;a++)
+ 470          //      {
+ 471          //              write_date(table2[a]);
+ 472          //              delay(40);              
+ 473          //      }
+ 474          //}
+ 475          
+ 476          //void delayT(long t)
+ 477          //{
+ 478          //      unsigned long temp=tt;
+ 479          //      while(1)
+ 480          //      {
+ 481          //              if(tt>=(temp+t))break;
+ 482          //      }
+ 483          //      tt=0;
+ 484          //}
+ 485          
+ 486          
+ 487          //char* itoa(unsigned long num,char* str,int radix)
+ 488          //{
+C51 COMPILER V9.60.0.0   MAIN                                                              10/19/2019 10:34:09 PAGE 9   
+
+ 489          //      char temp;//ÁÙÊ±±äÁ¿£¬½»»»Á½¸öÖµÊ±ÓÃµ½
+ 490          //      char index[]="0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";//Ë÷Òý±í
+ 491          //      unsigned unum;//´æ·ÅÒª×ª»»µÄÕûÊýµÄ¾ø¶ÔÖµ,×ª»»µÄÕûÊý¿ÉÄÜÊÇ¸ºÊý
+ 492          //      int i=0,j,k;//iÓÃÀ´Ö¸Ê¾ÉèÖÃ×Ö·û´®ÏàÓ¦Î»£¬×ª»»Ö®ºóiÆäÊµ¾ÍÊÇ×Ö·û´®µÄ³¤¶È£»×ª»»ºóË³ÐòÊÇÄæÐòµÄ£¬ÓÐÕý¸ºµÄÇé¿
+             -ö£¬kÓÃÀ´Ö¸Ê¾µ÷ÕûË³ÐòµÄ¿ªÊ¼Î»ÖÃ;jÓÃÀ´Ö¸Ê¾µ÷ÕûË³ÐòÊ±µÄ½»»»¡£
+ 493          // 
+ 494          //      //»ñÈ¡Òª×ª»»µÄÕûÊýµÄ¾ø¶ÔÖµ
+ 495          //      if(radix==10&&num<0)//Òª×ª»»³ÉÊ®½øÖÆÊý²¢ÇÒÊÇ¸ºÊý
+ 496          //      {
+ 497          //              unum=(unsigned)-num;//½«numµÄ¾ø¶ÔÖµ¸³¸øunum
+ 498          //              str[i++]='-';//ÔÚ×Ö·û´®×îÇ°ÃæÉèÖÃÎª'-'ºÅ£¬²¢ÇÒË÷Òý¼Ó1
+ 499          //      }
+ 500          //      else unum=(unsigned)num;//ÈôÊÇnumÎªÕý£¬Ö±½Ó¸³Öµ¸øunum
+ 501          // 
+ 502          //      //×ª»»²¿·Ö£¬×¢Òâ×ª»»ºóÊÇÄæÐòµÄ
+ 503          //      do
+ 504          //      {
+ 505          //              str[i++]=index[unum%(unsigned)radix];//È¡unumµÄ×îºóÒ»Î»£¬²¢ÉèÖÃÎªstr¶ÔÓ¦Î»£¬Ö¸Ê¾Ë÷Òý¼Ó1
+ 506          //              unum/=radix;//unumÈ¥µô×îºóÒ»Î»
+ 507          // 
+ 508          //      }while(unum);//Ö±ÖÁunumÎª0ÍË³öÑ­»·
+ 509          // 
+ 510          //      str[i]='\0';//ÔÚ×Ö·û´®×îºóÌí¼Ó'\0'×Ö·û£¬cÓïÑÔ×Ö·û´®ÒÔ'\0'½áÊø¡£
+ 511          // 
+ 512          //      //½«Ë³Ðòµ÷Õû¹ýÀ´
+ 513          //      if(str[0]=='-') k=1;//Èç¹ûÊÇ¸ºÊý£¬·ûºÅ²»ÓÃµ÷Õû£¬´Ó·ûºÅºóÃæ¿ªÊ¼µ÷Õû
+ 514          //      else k=0;//²»ÊÇ¸ºÊý£¬È«²¿¶¼Òªµ÷Õû
+ 515          // 
+ 516          //      
+ 517          //      for(j=k;j<=(i-1)/2;j++)//Í·Î²Ò»Ò»¶Ô³Æ½»»»£¬iÆäÊµ¾ÍÊÇ×Ö·û´®µÄ³¤¶È£¬Ë÷Òý×î´óÖµ±È³¤¶ÈÉÙ1
+ 518          //      {
+ 519          //              temp=str[j];//Í·²¿¸³Öµ¸øÁÙÊ±±äÁ¿
+ 520          //              str[j]=str[i-1+k-j];//Î²²¿¸³Öµ¸øÍ·²¿
+ 521          //              str[i-1+k-j]=temp;//½«ÁÙÊ±±äÁ¿µÄÖµ(ÆäÊµ¾ÍÊÇÖ®Ç°µÄÍ·²¿Öµ)¸³¸øÎ²²¿
+ 522          //      }
+ 523          // 
+ 524          //      return str;//·µ»Ø×ª»»ºóµÄ×Ö·û´®
+ 525          //}
 
 
 MODULE INFORMATION:   STATIC OVERLAYABLE
-   CODE SIZE        =   1742    ----
-   CONSTANT SIZE    =     37    ----
-   XDATA SIZE       =     60      85
+   CODE SIZE        =   1153    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =     60      15
    PDATA SIZE       =   ----    ----
    DATA SIZE        =   ----    ----
    IDATA SIZE       =   ----    ----
-C51 COMPILER V9.60.0.0   MAIN                                                              10/17/2019 21:10:09 PAGE 9   
-
    BIT SIZE         =   ----    ----
 END OF MODULE INFORMATION.
 
