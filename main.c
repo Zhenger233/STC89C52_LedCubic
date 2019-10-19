@@ -1,5 +1,6 @@
 /*
 ***STC89C52
+* 1-P1.0-1602DATA0
 * 2-P1.1-LEDGND2
 * 3-P1.2-LEDGND3
 * 4-P1.3-LEDGND4
@@ -13,6 +14,7 @@
 * 18-XTAL1
 * 19-XTAL2
 * 20-GND
+* 21-P2.0-LEDWHITE
 * 22-P2.1-595OE4_13
 * 23-P2.2-595OE3_13
 * 24-P2.3-5950E2_13
@@ -21,7 +23,7 @@
 * 27-P2.6-595RCK_12,UP-LINEMOVE
 * 28-P2.7-595SCK_11,UP-BITMOVE
 * 29-PSEN-595SCLR_10,ALWAYSHIGH
-* 31-VCC
+
 * 32-P0.7-1602DATA7
 * 33-P0.6-1602DATA6
 * 34-P0.5-1602DATA5
@@ -29,7 +31,7 @@
 * 36-P0.3-1602DATA3
 * 37-P0.2-1602DATA2
 * 38-P0.1-1602DATA1
-* 39-P0.0-1602DATA0
+* 40-VCC
 *
 ***LCD1602
 * 1-GND
@@ -100,7 +102,7 @@ sbit OE2=P2^3;
 sbit OE3=P2^2;
 sbit OE4=P2^1;
 sbit MOSIO=P2^4;
-sbit tempIO=P1^0;
+sbit lcdData0=P1^0;
 sbit rs=P1^5;
 sbit rw=P1^6;
 sbit lcden=P1^7;
@@ -110,8 +112,8 @@ sbit LEDGND3=P1^2;
 sbit LEDGND4=P1^3;
 sbit LED=P2^0;
 
-uchar table1[]="Hello world!";
-uchar table2[]=" LEDCUBE ";
+uchar table1[]="Hello,LED CUBIC!";
+uchar table2[]="MODEL ";
 unsigned int led=0xff;
 unsigned long tt=0;
 unsigned long keyNum=0;
@@ -129,10 +131,10 @@ void pwm(char);
 void keyInit();
 char* itoa(unsigned long num,char* str,int radix);
 void lcdInit();
-void write_date(unsigned char date);
+void write_data(unsigned char d);
 void write_com(uchar com);
 void ledInit();
-void delayT(long);
+//void delayT(long);
 void delay(uint);
 void light(char l,ulong d1,ulong d2,ulong d3,ulong d4);
 void breathe(uint);
@@ -144,12 +146,14 @@ void main( )
 	LED=1;
 	//tim0Init();
 	keyInit();
-	//lcdInit();
+	lcdInit();
 	ledInit();
 	LED=0;
     while(1)
     {
-		oneByOne(500);
+		//ledInit();
+		HC595SendData(0x55);HC595SendData(0x55);HC595SendData(0x55);HC595SendData(0x55);
+		HC595SendData(0xaa);HC595SendData(0xaa);HC595SendData(0xaa);HC595SendData(0xaa);
     }
 	
 }
@@ -170,10 +174,8 @@ void delay(uint t)
 {
 	uint X,Y;
 	LED=1;
-	tempIO=1;
 	for(Y=0;Y<t;Y++)
 		for(X=50;X>0;X--);
-	tempIO=0;
 	LED=0;
 		for(Y=0;Y<t;Y++)
 		for(X=50;X>0;X--);
@@ -202,6 +204,7 @@ void oneByOne(uint t)
 		delay(t);
 		for(j=1;j<4;j++){HC595SendData(0);delay(t);}
 	}
+	ledInit();
 }
 
 void layerSwitch(uchar l)
@@ -278,37 +281,51 @@ void keyInit()
 void key1Scan() interrupt 0
 {
 	char i;
+	if(KEY1==0)
+	{
+		delay(5);
 		if(KEY1==0)
 		{
-			delay(5);
-			if(KEY1==0)
+			switch(keyNum%3)
 			{
-				//HC595SendData(0xff);
-				if(keyNum&1)
+				case 0:
 				{
+					write_com(0x80+0x47);
+					write_data('1');
 					keyNum++;
 					for(i=1;i<5;i++)
 					{
 						breathe(0xaa);
 						delay(500);
 					}
-						
+					break;
 				}
-				else
+				case 1:
 				{
+					write_com(0x80+0x47);
+					write_data('2');
 					keyNum++;
 					for(i=1;i<5;i++)
 					{
 						delay(500);
 						breathe(0x55);
 					}
-					
-				}					
+					break;
+				}
+				case 2:
+				{
+					write_com(0x80+0x47);
+					write_data('3');
+					oneByOne(500);
+					break;
+				}
 			}
-			while(!KEY1||!KEY2);
+			
+								
 		}
-	
-
+		while(!KEY1||!KEY2);
+		modifyFlag=1;
+	}
 }
 
 void key2Scan() interrupt 2
@@ -354,97 +371,56 @@ void key2Scan() interrupt 2
 //}
 
 
-
-//void fakeDelay(unsigned int t)
-//{ 
-//	unsigned int i,j;
-//	for(i=t;i>0;i--)
-//		for(j=110;j>0;j--)NOP();
-//}
-/*
-
-void pwm(char a)
+void write_com(uchar com)
 {
-	//char i,temp=0;
-//	for(i=1;i<=a;i++)
-//	{
-//		HC595SendData(Led);
-//		HC595SendData(Led);
-//	}
-//	for(i=a;i<=100;i++)
-//	{OE=1;temp++;}
-//	OE=0;
-	HC595SendData(Led);
-	HC595SendData(Led);
-	delay(a);
-	OE=1;
-	delay(100-a);
-	OE=0;
+	P0=com;
+	lcdData0=com&1;
+	rs=0;
+	lcden=0;
+	delay(1);
+	lcden=1;
+	delay(1);
+	lcden=0;
 }
-*/
 
+void write_data(uchar d)
+{
+	P0=d;
+	lcdData0=d&1;
+	rs=1;
+	lcden=0;
+	delay(1);
+	lcden=1;
+	delay(1);
+	lcden=0;
+}
 
+void lcdInit()
+{
+    rw=0;
+	write_com(0x38);   //显示模式设置：16×2显示，5×7点阵，8位数据接口
+	delay(2);
+	write_com(0x0f);   //显示模式设置
+	delay(2);
+	write_com(0x06);   //显示模式设置：光标右移，字符不移
+	delay(2);
+	write_com(0x01);   //清屏幕指令，将以前的显示内容清除
+	delay(2);
 
-//void delay(uint x)
-//{
-//	uint a,b;
-//	for(a=x;a>0;a--)
-//		for(b=10;b>0;b--); 
-//}
-
-//void write_com(uchar com)
-//{
-//	P0=com;
-//	rs=0;
-//	lcden=0;
-//	delay(10);
-//	lcden=1;
-//	delay(10);
-//	lcden=0;
-//	
-//}
-
-//void write_date(uchar date)
-//{
-//	P0=date;
-//	rs=1;
-//	lcden=0;
-//	delay(10);
-//	lcden=1;
-//	delay(10);
-//	lcden=0;
-//	
-//}
-
-//void lcdInit()
-//{
-//    rw=0;
-//	write_com(0x38);   //显示模式设置：16×2显示，5×7点阵，8位数据接口
-//	delay(20);
-//	write_com(0x0f);   //显示模式设置
-//	delay(20);
-//	write_com(0x06);   //显示模式设置：光标右移，字符不移
-//	delay(20);
-//	write_com(0x01);   //清屏幕指令，将以前的显示内容清除
-//	delay(20);	
-//	
-//		write_com(0x80);	 //将第一个字符写在向右偏移17个字符处，为后面的由右向左划入做准备。
-//	delay(20);
-
-//	for(a=0;a<14;a++)
-//	{
-//		write_date(table1[a]);
-//		delay(20);		
-//	}
-//	
-//	write_com(0xc0);
-//	delay(50);
-//	for(a=0;a<14;a++)
-//	{
-//		write_date(table2[a]);
-//		delay(40);		
-//	}
-//}
+	write_com(0x80);
+	for(a=0;a<15;a++)
+	{
+		write_data(table1[a]);
+		delay(1);
+	}
+	write_com(0x80+0x40);
+	for(a=0;a<6;a++)
+	{
+		write_data(table2[a]);
+		delay(1);
+	}
+	write_data('0');
+}
 
 //void delayT(long t)
 //{
