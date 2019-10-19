@@ -134,10 +134,9 @@ void write_com(uchar com);
 void ledInit();
 void delayT(long);
 void delay(uint);
-void send32(ulong d);
 void light(char l,ulong d1,ulong d2,ulong d3,ulong d4);
 void breathe(uint);
-void oneByOne();
+void oneByOne(uint);
 void layerSwitch(uchar l);
 
 void main( )
@@ -150,24 +149,9 @@ void main( )
 	LED=0;
     while(1)
     {
-		send32(0x55555555);
-		//delay(10);
-		
-		send32(0xaaaaaaaa);
-		//delay(10);
-		
+		oneByOne(500);
     }
 	
-}
-
-void send32(ulong d)
-{
-	uint d1,d2,d3,d4;
-	d1=d&0xff;d2=(d>>8)&0xff;d3=(d>>16)&0xff;d4=(d>>24)&0xff;
-	HC595SendData(d1);
-	HC595SendData(d2);
-	HC595SendData(d3);
-	HC595SendData(d4);
 }
 
 //void light(uchar l,ulong d1,ulong d2,ulong d3,ulong d4)
@@ -202,41 +186,30 @@ void delay(uint t)
 //		for(x=110;x>=0;x--)g++;
 //}
 
-void oneByOne()
+void oneByOne(uint t)
 {
-	uchar i;
-	layerSwitch(1);
-	for(i=0;i<32;i++)
+	uint i,j,k;
+	for(k=1;k<16;k*=2)
 	{
-		HC595SendData(1<<i);
-		delay(500);
-	}
-	layerSwitch(2);
-	for(i=0;i<32;i++)
-	{
-		HC595SendData(1<<i);
-		delay(500);
-	}
-	layerSwitch(4);
-	for(i=0;i<32;i++)
-	{
-		HC595SendData(1<<i);
-		delay(500);
-	}
-	layerSwitch(8);
-	for(i=0;i<32;i++)
-	{
-		HC595SendData(1<<i);
-		delay(500);
+		layerSwitch(k);
+		for(i=1;i<8;i++)
+		{
+			HC595SendData(1<<i);
+			delay(t);
+			for(j=1;j<4;j++){HC595SendData(0);delay(t);}
+		}
+		HC595SendData(1);
+		delay(t);
+		for(j=1;j<4;j++){HC595SendData(0);delay(t);}
 	}
 }
 
 void layerSwitch(uchar l)
 {
-	LEDGND1=l&1;
-	LEDGND2=l&2;
-	LEDGND3=l&4;
-	LEDGND4=l&8;
+	LEDGND1=!(l&1);
+	LEDGND2=!(l&2);
+	LEDGND3=!(l&4);
+	LEDGND4=!(l&8);
 }
 
 void breathe(uint num)
