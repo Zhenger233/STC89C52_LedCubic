@@ -1,4 +1,4 @@
-C51 COMPILER V9.60.0.0   MAIN                                                              10/19/2019 19:23:42 PAGE 1   
+C51 COMPILER V9.60.0.0   MAIN                                                              10/23/2019 18:38:29 PAGE 1   
 
 
 C51 COMPILER V9.60.0.0, COMPILATION OF MODULE MAIN
@@ -8,501 +8,496 @@ COMPILER INVOKED BY: D:\Keil\C51\BIN\C51.EXE main.c LARGE OPTIMIZE(8,SPEED) BROW
 
 line level    source
 
-   1          /*
-   2          ***STC89C52
-   3          * 1-P1.0-1602DATA0
-   4          * 2-P1.1-LEDGND2
-   5          * 3-P1.2-LEDGND3
-   6          * 4-P1.3-LEDGND4
-   7          * 5-P1.4-LEDGND1
-   8          * 6-P1.5-1602RS
-   9          * 7-P1.6-1602RW
-  10          * 8-P1.7-1602EN
-  11          * 9-RST-KEY0
-  12          * 12-P3.2-KEY1
-  13          * 13-P3.3-KEY2
-  14          * 18-XTAL1
-  15          * 19-XTAL2
-  16          * 20-GND
-  17          * 21-P2.0-LEDWHITE
-  18          * 22-P2.1-595OE4_13
-  19          * 23-P2.2-595OE3_13
-  20          * 24-P2.3-5950E2_13
-  21          * 25-P2.4-595DS_14
-  22          * 26-P2.5-595OE1_13,HIGH-OFF
-  23          * 27-P2.6-595RCK_12,UP-LINEMOVE
-  24          * 28-P2.7-595SCK_11,UP-BITMOVE
-  25          * 29-PSEN-595SCLR_10,ALWAYSHIGH
+   1          #include <reg52.h>
+   2          #include <intrins.h>
+   3          
+   4          typedef unsigned int uint;
+   5          typedef unsigned char uchar;
+   6          typedef unsigned long ulong;
+   7          
+   8          sbit RS=P1^5;
+   9          sbit RW=P1^6;
+  10          sbit LED=P2^0;
+  11          sbit RCK=P2^6;
+  12          sbit SCK=P2^7;
+  13          sbit OE1=P2^5;
+  14          sbit OE2=P2^3;
+  15          sbit OE3=P2^2;
+  16          sbit OE4=P2^1;
+  17          sbit KEY1=P3^2;
+  18          sbit KEY2=P3^3;
+  19          sbit MOSIO=P2^4;
+  20          sbit lcden=P1^7;
+  21          sbit LEDGND1=P1^4;
+  22          sbit LEDGND2=P1^1;
+  23          sbit LEDGND3=P1^2;
+  24          sbit LEDGND4=P1^3;
+  25          sbit lcdData0=P1^0;
   26          
-  27          * 32-P0.7-1602DATA7
-  28          * 33-P0.6-1602DATA6
-  29          * 34-P0.5-1602DATA5
-  30          * 35-P0.4-1602DATA4
-  31          * 36-P0.3-1602DATA3
-  32          * 37-P0.2-1602DATA2
-  33          * 38-P0.1-1602DATA1
-  34          * 40-VCC
-  35          *
-  36          ***LCD1602
-  37          * 1-GND
-  38          * 2-VCC
-  39          * 3-VL
-  40          * 4-RS
-  41          * 5-RW
-  42          * 6-EN
-  43          * 7-DATA0
-  44          * 8-DATA1
-  45          * 9-DATA2
-  46          * 10-DATA3
-  47          * 11-DATA4
-  48          * 12-DATA5
-  49          * 13-DATA6
-  50          * 14-DATA7
-  51          * 15-VCC
-  52          * 16-GND
-  53          *
-  54          ***74HC595
-C51 COMPILER V9.60.0.0   MAIN                                                              10/19/2019 19:23:42 PAGE 2   
+  27          uchar ledMod=0;
+  28          uchar uartNum=0;
+  29          ulong keyNum=0;
+  30          uchar BREATHE=20;
+  31          uchar table2[]="MODEL ";
+  32          uchar table1[]="Zhenger.LEDCUBIC";
+  33          
+  34          void keyInit();
+  35          void lcdInit();
+  36          void ledInit();
+  37          void uartInit();
+  38          void pwmPurple();
+  39          void delay(uint);
+  40          void breathe(uint);
+  41          void oneByOne(uint);
+  42          void writeCom(uchar);
+  43          void writeData(uchar);
+  44          void layerSwitch(uchar);
+  45          void hc595SendData(uint);
+  46          
+  47          void main( )
+  48          {
+  49   1              LED=1;
+  50   1              keyInit();  //
+  51   1              lcdInit();  //
+  52   1              ledInit();  //
+  53   1              uartInit(); //´®¿Ú³õÊ¼»¯
+  54   1              LED=0;
+C51 COMPILER V9.60.0.0   MAIN                                                              10/23/2019 18:38:29 PAGE 2   
 
-  55          * 1-OUT0-LEFTRED
-  56          * 2-OUT1-RIGHTBLUE
-  57          * 3-OUT2-RIGHTRED
-  58          * 4-OUT3
-  59          * 5-OUT4
-  60          * 6-OUT5
-  61          * 7-OUT6
-  62          * 8-GND
-  63          * 9-STRINGOUT
-  64          * 10-MR-ALWAYSLOW
-  65          * 11-SCK
-  66          * 12-LCK
-  67          * 13-OE
-  68          * 14-DATAIN
-  69          * 15-OUT7
-  70          * 16-VCC
-  71          */
-  72          
-  73          #include <reg52.h>
-  74          #include <intrins.h>
-  75          //#define TEST
-  76          #define INT int
-  77          #define UNSIGNED unsigned
-  78          #define CHAR char
-  79          #define SBIT sbit
-  80          #define VOID void
-  81          #define LONG long
-  82          #define IF if
-  83          #define FOR for
-  84          #define WHILE while
-  85          #define INTERRUPT interrupt
-  86          #define NOP() _nop_()
-  87          #define mian main
-  88          typedef unsigned int uint;
-  89          typedef unsigned char uchar;
-  90          typedef unsigned long ulong;
-  91          
-  92          sbit KEY1=P3^2;
-  93          sbit KEY2=P3^3;
-  94          sbit RCK=P2^6;
-  95          sbit SCK=P2^7;
-  96          sbit OE1=P2^5;
-  97          #ifdef TEST
-              sbit OE2=P2^0;//TEMP FOR TEST!!
-              #else
- 100          sbit OE2=P2^3;
- 101          #endif
- 102          sbit OE3=P2^2;
- 103          sbit OE4=P2^1;
- 104          sbit MOSIO=P2^4;
- 105          sbit lcdData0=P1^0;
- 106          sbit rs=P1^5;
- 107          sbit rw=P1^6;
- 108          sbit lcden=P1^7;
- 109          sbit LEDGND1=P1^4;
- 110          sbit LEDGND2=P1^1;
- 111          sbit LEDGND3=P1^2;
- 112          sbit LEDGND4=P1^3;
- 113          sbit LED=P2^0;
- 114          
- 115          uchar table1[]="Hello,LED CUBIC!";
- 116          uchar table2[]="MODEL ";
-C51 COMPILER V9.60.0.0   MAIN                                                              10/19/2019 19:23:42 PAGE 3   
+  55   1              
+  56   1          while(1)
+  57   1          {
+  58   2                      hc595SendData(0x55);hc595SendData(0x55);hc595SendData(0x55);hc595SendData(0x55);
+  59   2                      hc595SendData(0xaa);hc595SendData(0xaa);hc595SendData(0xaa);hc595SendData(0xaa);
+  60   2          }
+  61   1      }
+  62          
+  63          void keyInit()
+  64          {
+  65   1              EA=1;
+  66   1              EX0=1;
+  67   1              IT0=1;
+  68   1              EX1=1;
+  69   1              IT1=1;
+  70   1      }
+  71          
+  72          void lcdInit()
+  73          {
+  74   1              uchar a;
+  75   1          RW=0;
+  76   1              writeCom(0x38);   //ÏÔÊ¾Ä£Ê½ÉèÖÃ£º16¡Á2ÏÔÊ¾£¬5¡Á7µãÕó£¬8Î»Êý¾Ý½Ó¿Ú
+  77   1              delay(2);
+  78   1              writeCom(0x0f);   //ÏÔÊ¾Ä£Ê½ÉèÖÃ
+  79   1              delay(2);
+  80   1              writeCom(0x06);   //ÏÔÊ¾Ä£Ê½ÉèÖÃ£º¹â±êÓÒÒÆ£¬×Ö·û²»ÒÆ
+  81   1              delay(2);
+  82   1              writeCom(0x01);   //ÇåÆÁÄ»Ö¸Áî£¬½«ÒÔÇ°µÄÏÔÊ¾ÄÚÈÝÇå³ý
+  83   1              delay(2);
+  84   1      
+  85   1              writeCom(0x80);
+  86   1              for(a=0;a<16;a++)
+  87   1              {
+  88   2                      writeData(table1[a]);
+  89   2                      delay(1);
+  90   2              }
+  91   1              writeCom(0x80+0x40);
+  92   1              for(a=0;a<6;a++)
+  93   1              {
+  94   2                      writeData(table2[a]);
+  95   2                      delay(1);
+  96   2              }
+  97   1              writeData('0');
+  98   1      }
+  99          
+ 100          void ledInit()
+ 101          {
+ 102   1              OE1=OE2=OE3=OE4=0;      
+ 103   1              LEDGND1=LEDGND2=LEDGND3=LEDGND4=0;
+ 104   1      }
+ 105          
+ 106          void uartInit()
+ 107          {
+ 108   1              TMOD = 0x20;    //T1¹¤×÷Ä£Ê½2  8Î»×Ô¶¯ÖØ×°
+ 109   1              TH1 = 0xfd;
+ 110   1              TL1 = 0xfd;     //±ÈÌØÂÊ9600
+ 111   1              TR1 = 1;                //Æô¶¯T1¶¨Ê±Æ÷
+ 112   1              SM0 = 0;
+ 113   1              SM1 = 1;                //´®¿Ú¹¤×÷·½Ê½1 10Î»Òì²½
+ 114   1              REN = 1;                //´®¿ÚÔÊÐí½ÓÊÕ
+ 115   1              EA  = 1;                //¿ª×ÜÖÐ¶Ï
+ 116   1              ES  = 1;                //´®¿ÚÖÐ¶Ï´ò¿ª
+C51 COMPILER V9.60.0.0   MAIN                                                              10/23/2019 18:38:29 PAGE 3   
 
- 117          unsigned int led=0xff;
- 118          unsigned long tt=0;
- 119          unsigned long keyNum=0;
- 120          char keyNumString[20];
- 121          uchar a,g;
- 122          uchar modifyFlag=0;
- 123          uint temp=0;
- 124          unsigned char i;
- 125          uchar LEDBREATHE;
- 126          
- 127          void HC595SendData(unsigned int SendVal);
- 128          void tim0Init();
- 129          //void fakeDelay(unsigned int i);
- 130          void pwm(char);
- 131          void keyInit();
- 132          char* itoa(unsigned long num,char* str,int radix);
- 133          void lcdInit();
- 134          void write_data(unsigned char d);
- 135          void write_com(uchar com);
- 136          void ledInit();
- 137          //void delayT(long);
- 138          void delay(uint);
- 139          void light(char l,ulong d1,ulong d2,ulong d3,ulong d4);
- 140          void breathe(uint);
- 141          void oneByOne(uint);
- 142          void layerSwitch(uchar l);
- 143          
- 144          void main( )
- 145          {
- 146   1              LED=1;
- 147   1              //tim0Init();
- 148   1              keyInit();
- 149   1              lcdInit();
- 150   1              ledInit();
- 151   1              LED=0;
- 152   1          while(1)
- 153   1          {
- 154   2                      //ledInit();
- 155   2                      HC595SendData(0x55);HC595SendData(0x55);HC595SendData(0x55);HC595SendData(0x55);
- 156   2                      HC595SendData(0xaa);HC595SendData(0xaa);HC595SendData(0xaa);HC595SendData(0xaa);
- 157   2          }
- 158   1              
- 159   1      }
- 160          
- 161          //void light(uchar l,ulong d1,ulong d2,ulong d3,ulong d4)
- 162          //{
- 163          //      send32(d1);
- 164          //      layerSwitch(l);
- 165          //      send32(d2);
- 166          //      layerSwitch(l);
- 167          //      send32(d3);
- 168          //      layerSwitch(l);
- 169          //      send32(d4);
- 170          //      layerSwitch(l);
- 171          //}
- 172          
- 173          void delay(uint t)
- 174          {
- 175   1              uint X,Y;
- 176   1              LED=1;
- 177   1              for(Y=0;Y<t;Y++)
- 178   1                      for(X=50;X>0;X--);
-C51 COMPILER V9.60.0.0   MAIN                                                              10/19/2019 19:23:42 PAGE 4   
+ 117   1              PS  = 1;                //¸ßÓÅÏÈ¼¶
+ 118   1      }
+ 119          
+ 120          void delay(uint t)
+ 121          {
+ 122   1              uint X,Y;
+ 123   1              LED=1;
+ 124   1              for(Y=0;Y<t;Y++)
+ 125   1                      for(X=50;X>0;X--);
+ 126   1              LED=0;
+ 127   1                      for(Y=0;Y<t;Y++)
+ 128   1                      for(X=50;X>0;X--);
+ 129   1      }
+ 130          
+ 131          void writeCom(uchar com)
+ 132          {
+ 133   1              P0=com;
+ 134   1              lcdData0=com&1;
+ 135   1              RS=0;
+ 136   1              lcden=0;
+ 137   1              delay(1);
+ 138   1              lcden=1;
+ 139   1              delay(1);
+ 140   1              lcden=0;
+ 141   1      }
+ 142          
+ 143          void writeData(uchar d)
+ 144          {
+ 145   1              P0=d;
+ 146   1              lcdData0=d&1;
+ 147   1              RS=1;
+ 148   1              lcden=0;
+ 149   1              delay(1);
+ 150   1              lcden=1;
+ 151   1              delay(1);
+ 152   1              lcden=0;
+ 153   1      }
+ 154          
+ 155          void oneByOne(uint t)
+ 156          {
+ 157   1              uint i,j,k;
+ 158   1              for(k=1;k<16;k*=2)
+ 159   1              {
+ 160   2                      layerSwitch(k);
+ 161   2                      for(i=1;i<8;i++)
+ 162   2                      {
+ 163   3                              hc595SendData(1<<i);
+ 164   3                              delay(t);
+ 165   3                              for(j=1;j<4;j++){hc595SendData(0);delay(t);}
+ 166   3                      }
+ 167   2                      hc595SendData(1);
+ 168   2                      delay(t);
+ 169   2                      for(j=1;j<4;j++){hc595SendData(0);delay(t);}
+ 170   2              }
+ 171   1              hc595SendData(0);hc595SendData(0);hc595SendData(0);hc595SendData(0);
+ 172   1              ledInit();
+ 173   1      }
+ 174          
+ 175          void layerSwitch(uchar l)
+ 176          {
+ 177   1              LEDGND1=!(l&1);
+ 178   1              LEDGND2=!(l&2);
+C51 COMPILER V9.60.0.0   MAIN                                                              10/23/2019 18:38:29 PAGE 4   
 
- 179   1              LED=0;
- 180   1                      for(Y=0;Y<t;Y++)
- 181   1                      for(X=50;X>0;X--);
- 182   1      }
- 183          
- 184          //void fakeDelay(uint t)
- 185          //{
- 186          //      uchar x;
- 187          //      for(t;t>=0;t--)
- 188          //              for(x=110;x>=0;x--)g++;
- 189          //}
- 190          
- 191          void oneByOne(uint t)
- 192          {
- 193   1              uint i,j,k;
- 194   1              for(k=1;k<16;k*=2)
- 195   1              {
- 196   2                      layerSwitch(k);
- 197   2                      for(i=1;i<8;i++)
- 198   2                      {
- 199   3                              HC595SendData(1<<i);
- 200   3                              delay(t);
- 201   3                              for(j=1;j<4;j++){HC595SendData(0);delay(t);}
- 202   3                      }
- 203   2                      HC595SendData(1);
- 204   2                      delay(t);
- 205   2                      for(j=1;j<4;j++){HC595SendData(0);delay(t);}
- 206   2              }
- 207   1              ledInit();
- 208   1      }
- 209          
- 210          void layerSwitch(uchar l)
- 211          {
- 212   1              LEDGND1=!(l&1);
- 213   1              LEDGND2=!(l&2);
- 214   1              LEDGND3=!(l&4);
- 215   1              LEDGND4=!(l&8);
- 216   1      }
- 217          
- 218          void breathe(uint num)
- 219          {
- 220   1              HC595SendData(num);
- 221   1              HC595SendData(num);
- 222   1              HC595SendData(num);
- 223   1              HC595SendData(num);
- 224   1                      
- 225   1              LEDBREATHE=20;
- 226   1              for(temp=0;temp<LEDBREATHE;temp++)
- 227   1              {
- 228   2                      OE1=OE2=OE3=OE4=1;
- 229   2                      delay(temp);
- 230   2                      OE1=OE2=OE3=OE4=0;
- 231   2                      delay(LEDBREATHE-temp);
- 232   2              }
- 233   1                      for(temp=LEDBREATHE;temp>0;temp--)
- 234   1              {
- 235   2                      OE1=OE2=OE3=OE4=1;
- 236   2                      delay(temp);
- 237   2                      OE1=OE2=OE3=OE4=0;
- 238   2                      delay(LEDBREATHE-temp);
- 239   2              }
- 240   1      }
-C51 COMPILER V9.60.0.0   MAIN                                                              10/19/2019 19:23:42 PAGE 5   
+ 179   1              LEDGND3=!(l&4);
+ 180   1              LEDGND4=!(l&8);
+ 181   1      }
+ 182          
+ 183          void breathe(uint num)
+ 184          {
+ 185   1              uchar temp;
+ 186   1              hc595SendData(num);
+ 187   1              hc595SendData(num);
+ 188   1              hc595SendData(num);
+ 189   1              hc595SendData(num);
+ 190   1      
+ 191   1              for(temp=0;temp<BREATHE;temp++)
+ 192   1              {
+ 193   2                      OE1=OE2=OE3=OE4=1;
+ 194   2                      delay(temp);
+ 195   2                      OE1=OE2=OE3=OE4=0;
+ 196   2                      delay(BREATHE-temp);
+ 197   2              }
+ 198   1              for(temp=BREATHE;temp>0;temp--)
+ 199   1              {
+ 200   2                      OE1=OE2=OE3=OE4=1;
+ 201   2                      delay(temp);
+ 202   2                      OE1=OE2=OE3=OE4=0;
+ 203   2                      delay(BREATHE-temp);
+ 204   2              }
+ 205   1      }
+ 206          
+ 207          void hc595SendData(uint SendVal)
+ 208          {
+ 209   1          unsigned char i;
+ 210   1              LED=1;
+ 211   1          for(i=0;i<8;i++)
+ 212   1          {
+ 213   2              if((SendVal<<i)&0x80)MOSIO=1;
+ 214   2              else MOSIO=0; 
+ 215   2                      SCK=0;
+ 216   2              _nop_();_nop_();
+ 217   2              SCK=1;
+ 218   2          }
+ 219   1              RCK=0;
+ 220   1              _nop_();_nop_();
+ 221   1              RCK=1;
+ 222   1              LED=0;
+ 223   1      }
+ 224          
+ 225          void pwmPurple()
+ 226          {
+ 227   1              uint i,j;
+ 228   1              for(j=0;j<5;j++)
+ 229   1              {
+ 230   2                      for(i=1;i<BREATHE;i++)
+ 231   2                      {
+ 232   3                              hc595SendData(0x55);hc595SendData(0x55);hc595SendData(0x55);hc595SendData(0x55);
+ 233   3                              delay(i);
+ 234   3                              hc595SendData(0xaa);hc595SendData(0xaa);hc595SendData(0xaa);hc595SendData(0xaa);
+ 235   3                              delay(BREATHE-i);
+ 236   3                      }
+ 237   2                      delay(100);
+ 238   2                      for(i=BREATHE;i>0;i--)
+ 239   2                      {
+ 240   3                              hc595SendData(0x55);hc595SendData(0x55);hc595SendData(0x55);hc595SendData(0x55);
+C51 COMPILER V9.60.0.0   MAIN                                                              10/23/2019 18:38:29 PAGE 5   
 
- 241          
- 242          void ledInit()
- 243          {
- 244   1              //uint a=0;
- 245   1              OE1=OE2=OE3=OE4=0;      
- 246   1              LEDGND1=LEDGND2=LEDGND3=LEDGND4=0;
- 247   1              //for(a=1;a<=16;++a)HC595SendData(0xff);
- 248   1      }
- 249          
- 250          void HC595SendData(unsigned int SendVal)
- 251          {
- 252   1              
- 253   1          unsigned char i;
- 254   1              LED=1;
- 255   1          for(i=0;i<8;i++)
- 256   1          {
- 257   2              if((SendVal<<i)&0x80)MOSIO=1;
- 258   2              else MOSIO=0;
- 259   2                                      //MOSIO=1;  
- 260   2                              SCK=0;
- 261   2              NOP();NOP();
- 262   2              SCK=1;
- 263   2          }
- 264   1              RCK=0;
- 265   1              NOP();NOP();
- 266   1              RCK=1;
- 267   1              LED=0;
- 268   1      }
- 269          
- 270          void keyInit()
- 271          {
- 272   1              EA=1;
- 273   1              EX0=1;
- 274   1              IT0=1;
- 275   1              EX1=1;
- 276   1              IT1=1;
- 277   1      }
- 278          
- 279          
- 280          
- 281          void key1Scan() interrupt 0
- 282          {
- 283   1              char i;
- 284   1              if(KEY1==0)
- 285   1              {
- 286   2                      delay(5);
- 287   2                      if(KEY1==0)
- 288   2                      {
- 289   3                              switch(keyNum%3)
- 290   3                              {
- 291   4                                      case 0:
+ 241   3                              delay(i);
+ 242   3                              hc595SendData(0xaa);hc595SendData(0xaa);hc595SendData(0xaa);hc595SendData(0xaa);
+ 243   3                              delay(BREATHE-i);
+ 244   3                      }
+ 245   2                      delay(100);
+ 246   2              }
+ 247   1      }
+ 248          
+ 249          void key1Scan() interrupt 0
+ 250          {
+ 251   1              if(KEY1==0)
+ 252   1              {
+ 253   2                      delay(5);
+ 254   2                      LEDGND1=LEDGND2=LEDGND3=LEDGND4=1;
+ 255   2                      if(KEY1==0)
+ 256   2                      {
+ 257   3                              ES=0;
+ 258   3                              SBUF = ledMod;  
+ 259   3                              while(!TI);
+ 260   3                              TI = 0;
+ 261   3                              ES=1;
+ 262   3                      }
+ 263   2                      while(!KEY1||!KEY2);
+ 264   2                      LEDGND1=LEDGND2=LEDGND3=LEDGND4=0;
+ 265   2              }
+ 266   1      }
+ 267          
+ 268          void key2Scan() interrupt 2
+ 269          {
+ 270   1              uchar i;
+ 271   1              if(KEY2==0)
+ 272   1              {
+ 273   2                      delay(5);
+ 274   2                      if(KEY2==0)
+ 275   2                      {
+ 276   3                              switch(keyNum%4)
+ 277   3                              {
+ 278   4                                      case 0:
+ 279   4                                      {
+ 280   5                                              ledMod=1;
+ 281   5                                              writeCom(0x80+0x46);
+ 282   5                                              writeData(ledMod+'0');
+ 283   5                                              keyNum++;
+ 284   5                                              for(i=1;i<5;i++)
+ 285   5                                              {
+ 286   6                                                      breathe(0xaa);
+ 287   6                                                      delay(500);
+ 288   6                                              }
+ 289   5                                              break;
+ 290   5                                      }
+ 291   4                                      case 1:
  292   4                                      {
- 293   5                                              write_com(0x80+0x47);
- 294   5                                              write_data('1');
- 295   5                                              keyNum++;
- 296   5                                              for(i=1;i<5;i++)
- 297   5                                              {
- 298   6                                                      breathe(0xaa);
+ 293   5                                              ledMod=2;
+ 294   5                                              writeCom(0x80+0x46);
+ 295   5                                              writeData(ledMod+'0');
+ 296   5                                              keyNum++;
+ 297   5                                              for(i=1;i<5;i++)
+ 298   5                                              {
  299   6                                                      delay(500);
- 300   6                                              }
- 301   5                                              break;
- 302   5                                      }
-C51 COMPILER V9.60.0.0   MAIN                                                              10/19/2019 19:23:42 PAGE 6   
+ 300   6                                                      breathe(0x55);
+ 301   6                                              }
+ 302   5                                              break;
+C51 COMPILER V9.60.0.0   MAIN                                                              10/23/2019 18:38:29 PAGE 6   
 
- 303   4                                      case 1:
- 304   4                                      {
- 305   5                                              write_com(0x80+0x47);
- 306   5                                              write_data('2');
- 307   5                                              keyNum++;
- 308   5                                              for(i=1;i<5;i++)
- 309   5                                              {
- 310   6                                                      delay(500);
- 311   6                                                      breathe(0x55);
- 312   6                                              }
- 313   5                                              break;
- 314   5                                      }
- 315   4                                      case 2:
- 316   4                                      {
- 317   5                                              write_com(0x80+0x47);
- 318   5                                              write_data('3');
- 319   5                                              oneByOne(500);
+ 303   5                                      }
+ 304   4                                      case 2:
+ 305   4                                      {
+ 306   5                                              ledMod=3;
+ 307   5                                              writeCom(0x80+0x46);
+ 308   5                                              writeData(ledMod+'0');
+ 309   5                                              keyNum++;
+ 310   5                                              oneByOne(300);
+ 311   5                                              break;
+ 312   5                                      }
+ 313   4                                      case 3:
+ 314   4                                      {
+ 315   5                                              ledMod=4;
+ 316   5                                              writeCom(0x80+0x46);
+ 317   5                                              writeData(ledMod+'0');
+ 318   5                                              keyNum++;
+ 319   5                                              pwmPurple();
  320   5                                              break;
  321   5                                      }
  322   4                              }
- 323   3                              
- 324   3                                                                      
- 325   3                      }
- 326   2                      while(!KEY1||!KEY2);
- 327   2                      modifyFlag=1;
- 328   2              }
- 329   1      }
- 330          
- 331          void key2Scan() interrupt 2
- 332          {
- 333   1              //modifyFlag=1;
- 334   1              if(KEY2==0)
- 335   1                      {
- 336   2                              delay(5);
- 337   2                              if(KEY2==0)
- 338   2                              {
- 339   3                                      unsigned char i;
- 340   3                                      for(i=0;i<8;i++)
- 341   3                                      {
- 342   4                                              MOSIO=0;  
- 343   4                                              SCK=0;
- 344   4                                              NOP();NOP();
- 345   4                                              SCK=1;
- 346   4                                      }
- 347   3                                      RCK=0;
- 348   3                                      NOP();NOP();
- 349   3                                      RCK=1;
- 350   3                                      keyNum++;
- 351   3                                      keyNum++;
- 352   3                              }
- 353   2                              while(!KEY1||!KEY2);
- 354   2                      }
- 355   1      }
- 356          
- 357          //void tim0Init()
- 358          //{
- 359          //      TMOD=0x00;               //Ä£Ê½ÉèÖÃ£¬00000001£¬¿É¼û²ÉÓÃµÄÊÇ¶¨Ê±Æ÷0£¬¹¤×÷ÓëÄ£Ê½1£¨M1=0£¬M0=1£©¡£
- 360          //      TH0=(8192-921)/32;               //¶¨Ê±Æ÷ÉèÖÃ£¬Ã¿¸ô1ms·¢ÆðÒ»´ÎÖÐ¶Ï¡£
- 361          //      TL0=(8192-921)%32;
- 362          //      TR0=1;                   //´ò¿ª¶¨Ê±Æ÷
- 363          //      ET0=1;                   //¿ª¶¨Ê±Æ÷0ÖÐ¶Ï
- 364          //      EA=1;                    //¿ª×ÜÖÐ¶Ï
-C51 COMPILER V9.60.0.0   MAIN                                                              10/19/2019 19:23:42 PAGE 7   
+ 323   3                              SBUF = keyNum%4+1;      
+ 324   3                              while(!TI);
+ 325   3                              TI = 0;                                 
+ 326   3                      }
+ 327   2                      while(!KEY1||!KEY2);
+ 328   2                      writeCom(0x80+0x46);
+ 329   2                      writeData('0');
+ 330   2              }
+ 331   1      }
+ 332          
+ 333          void uart() interrupt 4
+ 334          {
+ 335   1              
+ 336   1              uchar i;
+ 337   1              if(RI)
+ 338   1              {
+ 339   2                      ledMod=SBUF;
+ 340   2                      RI = 0;
+ 341   2                      switch(ledMod%5)
+ 342   2                      {
+ 343   3                              case 0:
+ 344   3                              {
+ 345   4                                      ledMod=0;
+ 346   4                                      writeCom(0x80+0x46);
+ 347   4                                      writeData(ledMod+'0');
+ 348   4                                      hc595SendData(0x55);hc595SendData(0x55);hc595SendData(0x55);hc595SendData(0x55);
+ 349   4                                      hc595SendData(0xaa);hc595SendData(0xaa);hc595SendData(0xaa);hc595SendData(0xaa);
+ 350   4                                      break;
+ 351   4                              }
+ 352   3                              case 1:
+ 353   3                              {
+ 354   4                                      ledMod=1;
+ 355   4                                      writeCom(0x80+0x46);
+ 356   4                                      writeData(ledMod+'0');
+ 357   4                                      keyNum++;
+ 358   4                                      for(i=1;i<5;i++)
+ 359   4                                      {
+ 360   5                                              breathe(0xaa);
+ 361   5                                              delay(500);
+ 362   5                                      }
+ 363   4                                      break;
+ 364   4                              }
+C51 COMPILER V9.60.0.0   MAIN                                                              10/23/2019 18:38:29 PAGE 7   
 
- 365          //}
- 366          
- 367          //void time0() interrupt 1
- 368          //{     TH0=(8192-921)/32;               //¶¨Ê±Æ÷ÉèÖÃ£¬Ã¿¸ô5ms·¢ÆðÒ»´ÎÖÐ¶Ï¡£
- 369          //      TL0=(8192-921)%32;
- 370          //      tt++;
- 371          //}
- 372          
- 373          
- 374          void write_com(uchar com)
- 375          {
- 376   1              P0=com;
- 377   1              lcdData0=com&1;
- 378   1              rs=0;
- 379   1              lcden=0;
- 380   1              delay(1);
- 381   1              lcden=1;
- 382   1              delay(1);
- 383   1              lcden=0;
- 384   1      }
- 385          
- 386          void write_data(uchar d)
- 387          {
- 388   1              P0=d;
- 389   1              lcdData0=d&1;
- 390   1              rs=1;
- 391   1              lcden=0;
- 392   1              delay(1);
- 393   1              lcden=1;
- 394   1              delay(1);
- 395   1              lcden=0;
+ 365   3                              case 2:
+ 366   3                              {
+ 367   4                                      ledMod=2;
+ 368   4                                      writeCom(0x80+0x46);
+ 369   4                                      writeData(ledMod+'0');
+ 370   4                                      keyNum++;
+ 371   4                                      for(i=1;i<5;i++)
+ 372   4                                      {
+ 373   5                                              delay(500);
+ 374   5                                              breathe(0x55);
+ 375   5                                      }
+ 376   4                                      break;
+ 377   4                              }
+ 378   3                              case 3:
+ 379   3                              {
+ 380   4                                      ledMod=3;
+ 381   4                                      writeCom(0x80+0x46);
+ 382   4                                      writeData(ledMod+'0');
+ 383   4                                      oneByOne(300);
+ 384   4                                      break;
+ 385   4                              }
+ 386   3                              case 4:
+ 387   3                              {
+ 388   4                                      ledMod=4;
+ 389   4                                      writeCom(0x80+0x46);
+ 390   4                                      writeData(ledMod+'0');
+ 391   4                                      pwmPurple();
+ 392   4                                      break;
+ 393   4                              }
+ 394   3                      }
+ 395   2              }
  396   1      }
  397          
- 398          void lcdInit()
- 399          {
- 400   1          rw=0;
- 401   1              write_com(0x38);   //ÏÔÊ¾Ä£Ê½ÉèÖÃ£º16¡Á2ÏÔÊ¾£¬5¡Á7µãÕó£¬8Î»Êý¾Ý½Ó¿Ú
- 402   1              delay(2);
- 403   1              write_com(0x0f);   //ÏÔÊ¾Ä£Ê½ÉèÖÃ
- 404   1              delay(2);
- 405   1              write_com(0x06);   //ÏÔÊ¾Ä£Ê½ÉèÖÃ£º¹â±êÓÒÒÆ£¬×Ö·û²»ÒÆ
- 406   1              delay(2);
- 407   1              write_com(0x01);   //ÇåÆÁÄ»Ö¸Áî£¬½«ÒÔÇ°µÄÏÔÊ¾ÄÚÈÝÇå³ý
- 408   1              delay(2);
- 409   1      
- 410   1              write_com(0x80);
- 411   1              for(a=0;a<15;a++)
- 412   1              {
- 413   2                      write_data(table1[a]);
- 414   2                      delay(1);
- 415   2              }
- 416   1              write_com(0x80+0x40);
- 417   1              for(a=0;a<6;a++)
- 418   1              {
- 419   2                      write_data(table2[a]);
- 420   2                      delay(1);
- 421   2              }
- 422   1              write_data('0');
- 423   1      }
- 424          
- 425          //void delayT(long t)
- 426          //{
-C51 COMPILER V9.60.0.0   MAIN                                                              10/19/2019 19:23:42 PAGE 8   
+ 398          /*
+ 399          ***STC89C52
+ 400          * 1-P1.0-1602DATA0
+ 401          * 2-P1.1-LEDGND2
+ 402          * 3-P1.2-LEDGND3
+ 403          * 4-P1.3-LEDGND4
+ 404          * 5-P1.4-LEDGND1
+ 405          * 6-P1.5-1602RS
+ 406          * 7-P1.6-1602RW
+ 407          * 8-P1.7-1602EN
+ 408          * 9-RST-KEY0
+ 409          * 10-RXD-CH340RXD
+ 410          * 11-TXD-CH340TXD
+ 411          * 12-P3.2-KEY1
+ 412          * 13-P3.3-KEY2
+ 413          * 18-XTAL1
+ 414          * 19-XTAL2
+ 415          * 20-GND
+ 416          * 21-P2.0-LEDWHITE
+ 417          * 22-P2.1-595OE4_13
+ 418          * 23-P2.2-595OE3_13
+ 419          * 24-P2.3-5950E2_13
+ 420          * 25-P2.4-595DS_14
+ 421          * 26-P2.5-595OE1_13,HIGH-OFF
+ 422          * 27-P2.6-595RCK_12,UP-LINEMOVE
+ 423          * 28-P2.7-595SCK_11,UP-BITMOVE
+ 424          * 29-PSEN-595SCLR_10,ALWAYSHIGH
+ 425          
+ 426          * 32-P0.7-1602DATA7
+C51 COMPILER V9.60.0.0   MAIN                                                              10/23/2019 18:38:29 PAGE 8   
 
- 427          //      unsigned long temp=tt;
- 428          //      while(1)
- 429          //      {
- 430          //              if(tt>=(temp+t))break;
- 431          //      }
- 432          //      tt=0;
- 433          //}
- 434          
- 435          
- 436          //char* itoa(unsigned long num,char* str,int radix)
- 437          //{
- 438          //      char temp;//ÁÙÊ±±äÁ¿£¬½»»»Á½¸öÖµÊ±ÓÃµ½
- 439          //      char index[]="0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";//Ë÷Òý±í
- 440          //      unsigned unum;//´æ·ÅÒª×ª»»µÄÕûÊýµÄ¾ø¶ÔÖµ,×ª»»µÄÕûÊý¿ÉÄÜÊÇ¸ºÊý
- 441          //      int i=0,j,k;//iÓÃÀ´Ö¸Ê¾ÉèÖÃ×Ö·û´®ÏàÓ¦Î»£¬×ª»»Ö®ºóiÆäÊµ¾ÍÊÇ×Ö·û´®µÄ³¤¶È£»×ª»»ºóË³ÐòÊÇÄæÐòµÄ£¬ÓÐÕý¸ºµÄÇé¿
-             -ö£¬kÓÃÀ´Ö¸Ê¾µ÷ÕûË³ÐòµÄ¿ªÊ¼Î»ÖÃ;jÓÃÀ´Ö¸Ê¾µ÷ÕûË³ÐòÊ±µÄ½»»»¡£
- 442          // 
- 443          //      //»ñÈ¡Òª×ª»»µÄÕûÊýµÄ¾ø¶ÔÖµ
- 444          //      if(radix==10&&num<0)//Òª×ª»»³ÉÊ®½øÖÆÊý²¢ÇÒÊÇ¸ºÊý
- 445          //      {
- 446          //              unum=(unsigned)-num;//½«numµÄ¾ø¶ÔÖµ¸³¸øunum
- 447          //              str[i++]='-';//ÔÚ×Ö·û´®×îÇ°ÃæÉèÖÃÎª'-'ºÅ£¬²¢ÇÒË÷Òý¼Ó1
- 448          //      }
- 449          //      else unum=(unsigned)num;//ÈôÊÇnumÎªÕý£¬Ö±½Ó¸³Öµ¸øunum
- 450          // 
- 451          //      //×ª»»²¿·Ö£¬×¢Òâ×ª»»ºóÊÇÄæÐòµÄ
- 452          //      do
- 453          //      {
- 454          //              str[i++]=index[unum%(unsigned)radix];//È¡unumµÄ×îºóÒ»Î»£¬²¢ÉèÖÃÎªstr¶ÔÓ¦Î»£¬Ö¸Ê¾Ë÷Òý¼Ó1
- 455          //              unum/=radix;//unumÈ¥µô×îºóÒ»Î»
- 456          // 
- 457          //      }while(unum);//Ö±ÖÁunumÎª0ÍË³öÑ­»·
- 458          // 
- 459          //      str[i]='\0';//ÔÚ×Ö·û´®×îºóÌí¼Ó'\0'×Ö·û£¬cÓïÑÔ×Ö·û´®ÒÔ'\0'½áÊø¡£
- 460          // 
- 461          //      //½«Ë³Ðòµ÷Õû¹ýÀ´
- 462          //      if(str[0]=='-') k=1;//Èç¹ûÊÇ¸ºÊý£¬·ûºÅ²»ÓÃµ÷Õû£¬´Ó·ûºÅºóÃæ¿ªÊ¼µ÷Õû
- 463          //      else k=0;//²»ÊÇ¸ºÊý£¬È«²¿¶¼Òªµ÷Õû
- 464          // 
- 465          //      
- 466          //      for(j=k;j<=(i-1)/2;j++)//Í·Î²Ò»Ò»¶Ô³Æ½»»»£¬iÆäÊµ¾ÍÊÇ×Ö·û´®µÄ³¤¶È£¬Ë÷Òý×î´óÖµ±È³¤¶ÈÉÙ1
- 467          //      {
- 468          //              temp=str[j];//Í·²¿¸³Öµ¸øÁÙÊ±±äÁ¿
- 469          //              str[j]=str[i-1+k-j];//Î²²¿¸³Öµ¸øÍ·²¿
- 470          //              str[i-1+k-j]=temp;//½«ÁÙÊ±±äÁ¿µÄÖµ(ÆäÊµ¾ÍÊÇÖ®Ç°µÄÍ·²¿Öµ)¸³¸øÎ²²¿
- 471          //      }
- 472          // 
- 473          //      return str;//·µ»Ø×ª»»ºóµÄ×Ö·û´®
- 474          //}
+ 427          * 33-P0.6-1602DATA6
+ 428          * 34-P0.5-1602DATA5
+ 429          * 35-P0.4-1602DATA4
+ 430          * 36-P0.3-1602DATA3
+ 431          * 37-P0.2-1602DATA2
+ 432          * 38-P0.1-1602DATA1
+ 433          * 40-VCC
+ 434          *
+ 435          ***LCD1602
+ 436          * 1-GND
+ 437          * 2-VCC
+ 438          * 3-VL
+ 439          * 4-RS
+ 440          * 5-RW
+ 441          * 6-EN
+ 442          * 7-DATA0
+ 443          * 8-DATA1
+ 444          * 9-DATA2
+ 445          * 10-DATA3
+ 446          * 11-DATA4
+ 447          * 12-DATA5
+ 448          * 13-DATA6
+ 449          * 14-DATA7
+ 450          * 15-VCC
+ 451          * 16-GND
+ 452          *
+ 453          ***74HC595
+ 454          * 1-OUT0-LEFTRED
+ 455          * 2-OUT1-RIGHTBLUE
+ 456          * 3-OUT2-RIGHTRED
+ 457          * 4-OUT3
+ 458          * 5-OUT4
+ 459          * 6-OUT5
+ 460          * 7-OUT6
+ 461          * 8-GND
+ 462          * 9-STRINGOUT
+ 463          * 10-MR-ALWAYSLOW
+ 464          * 11-SCK
+ 465          * 12-LCK
+ 466          * 13-OE
+ 467          * 14-DATAIN
+ 468          * 15-OUT7
+ 469          * 16-VCC
+ 470          */
 
 
 MODULE INFORMATION:   STATIC OVERLAYABLE
-   CODE SIZE        =   1382    ----
+   CODE SIZE        =   1929    ----
    CONSTANT SIZE    =   ----    ----
-   XDATA SIZE       =     61      12
+   XDATA SIZE       =     31      17
    PDATA SIZE       =   ----    ----
    DATA SIZE        =   ----    ----
    IDATA SIZE       =   ----    ----

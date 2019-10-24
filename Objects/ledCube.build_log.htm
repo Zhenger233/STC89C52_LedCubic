@@ -23,12 +23,23 @@ Project File Date:  10/14/2019
 
 <h2>Output:</h2>
 Build target 'Target 1'
-compiling main.c...
 linking...
-Program Size: data=9.0 xdata=71 code=1866
+*** WARNING L15: MULTIPLE CALL TO SEGMENT
+    SEGMENT: ?PR?_BREATHE?MAIN
+    CALLER1: ?PR?KEY2SCAN?MAIN
+    CALLER2: ?PR?UART?MAIN
+*** WARNING L15: MULTIPLE CALL TO SEGMENT
+    SEGMENT: ?PR?_ONEBYONE?MAIN
+    CALLER1: ?PR?KEY2SCAN?MAIN
+    CALLER2: ?PR?UART?MAIN
+*** WARNING L15: MULTIPLE CALL TO SEGMENT
+    SEGMENT: ?PR?PWMPURPLE?MAIN
+    CALLER1: ?PR?KEY2SCAN?MAIN
+    CALLER2: ?PR?UART?MAIN
+Program Size: data=9.0 xdata=50 code=2201
 creating hex file from ".\Objects\ledCube"...
-".\Objects\ledCube" - 0 Error(s), 0 Warning(s).
-Build Time Elapsed:  00:00:00
+".\Objects\ledCube" - 0 Error(s), 3 Warning(s).
+Build Time Elapsed:  00:00:01
 </pre>
 </body>
 </html>
